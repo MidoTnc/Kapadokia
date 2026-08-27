@@ -38,7 +38,12 @@ const todayLocal = () => {
   return `${p.year}-${p.month}-${p.day}`;
 };
 
-/* 본문에서 운항/취소 판정. 예보 문단의 단어까지 세지 않도록 상단만 본다. */
+/* 본문에서 운항/취소 판정. 예보 문단의 단어까지 세지 않도록 상단만 본다.
+ *
+ * 주의: "closed after 09:30" 은 그날 운항 시간대가 끝났다는 뜻이지 취소가 아니다.
+ * 늦은 시각에 긁으면 정상 운항한 날이 통째로 '취소'로 뒤집힌다.
+ * 실제로 2026-08-27 이 그렇게 잘못 기록됐다(현지 확인 결과 운항).
+ */
 function verdict(html) {
   const text = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -46,11 +51,20 @@ function verdict(html) {
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .toLowerCase();
-  const head = text.slice(0, 2500);            // 오늘 상태는 항상 상단에 있다
-  const neg = (head.match(/cancell?ed|closed|no flights?|not flying|grounded|iptal/g) || []).length;
-  const pos = (head.match(/flew|flying|are operating|flyable|will fly|flights operate/g) || []).length;
+  const head = text.slice(0, 2500);
+
+  // 실제 비행 시간대가 적혀 있으면 그날은 뜬 것이다. 다른 단어보다 우선한다.
+  if (/flew\s+\d{1,2}:\d{2}/.test(head) || /flew this morning/.test(head)) return "flew";
+
+  // 운항창 종료 표현은 취소와 무관하므로 세지 않는다
+  const cleaned = head
+    .replace(/closed\s+after[^a-z]{0,12}\d{1,2}:\d{2}/g, " ")
+    .replace(/window\s+closed/g, " ");
+
+  const neg = (cleaned.match(/cancell?ed|no flights?|not flying|grounded|iptal|zones? (are )?closed|all (three )?(flight )?zones/g) || []).length;
+  const pos = (cleaned.match(/flew|flying|are operating|flyable|will fly|flights operate/g) || []).length;
   if (!neg && !pos) return null;
-  if (neg === pos) return null;                // 애매하면 기록하지 않는다
+  if (neg === pos) return null;
   return neg > pos ? "cancelled" : "flew";
 }
 
