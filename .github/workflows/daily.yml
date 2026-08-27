@@ -2,9 +2,13 @@ name: 벌룬 운항 기록 수집
 
 on:
   schedule:
-    # 매일 07:00 UTC = 이스탄불 10:00. 그날 운항 여부가 확정된 뒤에 돈다.
     - cron: "0 7 * * *"
-  workflow_dispatch:        # 수동 실행 버튼
+  workflow_dispatch:
+    inputs:
+      climatology:
+        description: "기후값도 다시 계산 (15년치 · 몇 분 걸림 · 평소엔 불필요)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -21,16 +25,24 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
-      - name: 운항 여부 수집
+      - name: 오늘 운항 여부 수집
         run: node scripts/scrape.mjs
+
+      - name: 다른 사이트 예보 수집
+        run: node scripts/peers.mjs
+        continue-on-error: true
+
+      - name: 기후값 계산 (파일이 없거나 요청했을 때만)
+        if: github.event.inputs.climatology == 'true' || hashFiles('data/climatology.json') == ''
+        run: node scripts/climatology.mjs
 
       - name: 변경분 커밋
         run: |
           git config user.name  "balloon-log"
           git config user.email "actions@users.noreply.github.com"
-          git add data/log.json
+          git add data/
           if git diff --staged --quiet; then
             echo "변경 없음"
           else
