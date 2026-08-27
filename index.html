@@ -20,10 +20,10 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,Bli
 h1{font-size:20px;margin:0 0 2px;letter-spacing:-.02em}
 h2{font-size:14px;margin:0 0 12px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .sub{color:var(--dim);font-size:13px;margin:0 0 20px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.card{background:var(--panel);border:1.5px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
 .row{display:flex;gap:12px;flex-wrap:wrap}
 .big{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
-.bigcard{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.bigcard{flex:1;min-width:200px;background:var(--panel);border:1.5px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden}
 .bigcard .lbl{font-size:12px;color:var(--dim);margin-bottom:6px}
 .bigcard .pct{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1}
 .bigcard .meta{font-size:12px;color:var(--dim);margin-top:8px}
@@ -34,23 +34,24 @@ h2{font-size:14px;margin:0 0 12px;color:var(--dim);font-weight:600;text-transfor
 .strip{display:flex;gap:3px;align-items:flex-end;overflow-x:auto;padding-bottom:6px}
 .strip .d{flex:0 0 auto;width:52px;text-align:center}
 .strip .col{height:90px;display:flex;align-items:flex-end;justify-content:center}
-.strip .col>i{display:block;width:26px;border-radius:4px 4px 0 0}
+.strip .col>i{display:block;width:28px;border-radius:7px 7px 3px 3px}
 .strip .dt{font-size:10px;color:var(--dim);margin-top:5px;white-space:nowrap}
 .strip .vv{font-size:11px;font-weight:600;margin-top:2px}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .cal .h{font-size:10px;color:var(--dimmer);text-align:center;padding:2px 0}
-.cal .c{aspect-ratio:1;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;background:var(--panel2);cursor:default;position:relative;border:1px solid transparent}
+.cal .c{aspect-ratio:1;min-height:44px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;background:var(--panel2);cursor:default;position:relative;border:1.5px solid var(--line)}
 .cal .c.on{cursor:pointer}
-.cal .c .n{font-size:9px;color:var(--dim);line-height:1}
-.cal .c .p{font-size:11px;font-weight:700;line-height:1.2}
-.cal .c.trip{border-color:var(--trip)}
-.months{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
-.mtitle{font-size:12px;color:var(--dim);margin-bottom:6px;font-weight:600}
-button{font:inherit;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 13px;cursor:pointer}
+.cal .c .n{font-size:10px;color:var(--dim);line-height:1}
+.cal .c .p{font-size:14px;font-weight:700;line-height:1.25;margin-top:2px}
+.cal .c.trip{border-color:var(--trip);border-width:2.5px;box-shadow:0 0 0 3px color-mix(in srgb,var(--trip) 18%,transparent)}
+.cal .c.past{opacity:.3;border-style:dashed}
+.months{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.mtitle{font-size:14px;color:var(--fg);margin-bottom:9px;font-weight:700}
+button{font:inherit;background:var(--panel2);color:var(--fg);border:1.5px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
 button:hover{border-color:var(--accent)}
 button.p{background:var(--accent);color:#08101c;border-color:var(--accent);font-weight:600}
 button:disabled{opacity:.45;cursor:not-allowed}
-input,select{font:inherit;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+input,select{font:inherit;background:var(--panel2);color:var(--fg);border:1.5px solid var(--line);border-radius:10px;padding:7px 10px}
 label{font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:4px}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
@@ -59,7 +60,7 @@ th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;lett
 .tag.ok{color:var(--good);border-color:var(--good)}
 .tag.no{color:var(--bad);border-color:var(--bad)}
 .tag.est{color:var(--dim)}
-.note{font-size:12px;color:var(--dim);background:var(--panel2);border-left:3px solid var(--line);padding:10px 12px;border-radius:0 8px 8px 0;margin-top:12px}
+.note{font-size:12.5px;color:var(--dim);background:var(--panel2);border-left:3px solid var(--line);padding:11px 13px;border-radius:0 10px 10px 0;margin-top:12px;line-height:1.6}
 .note.warn{border-left-color:var(--mid)}
 .log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--dim);max-height:150px;overflow:auto;white-space:pre-wrap;background:var(--panel2);padding:10px;border-radius:8px}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px}
@@ -67,6 +68,29 @@ th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;lett
 .hide{display:none}
 .legend{display:flex;gap:14px;font-size:11px;color:var(--dim);flex-wrap:wrap;margin-top:10px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ── 여행 기간 히어로 ── */
+.hero{text-align:center;padding:8px 0 18px}
+.herolbl{font-size:13px;color:var(--dim);margin-bottom:6px}
+.heropct{font-size:60px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.herosub{font-size:13px;color:var(--dim);margin-top:10px;max-width:560px;margin-left:auto;margin-right:auto}
+.tdays{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:6px}
+.tday{background:var(--panel2);border:1.5px solid var(--line);border-radius:14px;padding:12px 10px;text-align:center}
+.tdate{font-size:12px;color:var(--dim)}
+.tpct{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:4px 0 8px}
+.tbar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.tbar>i{display:block;height:100%;border-radius:3px}
+.tkind{font-size:11px;color:var(--dimmer);margin-top:7px}
+
+/* ── 접이식 ── */
+details{background:var(--panel);border:1.5px solid var(--line);border-radius:16px;margin-bottom:16px;overflow:hidden}
+details>summary{cursor:pointer;padding:15px 18px;font-size:14px;font-weight:600;list-style:none;display:flex;align-items:center;gap:9px}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸";color:var(--dim);font-size:12px;transition:transform .15s}
+details[open]>summary::before{transform:rotate(90deg)}
+details>summary:hover{background:var(--panel2)}
+details>summary .hint{font-weight:400;color:var(--dim);font-size:12px;margin-left:auto}
+.dbody{padding:2px 18px 18px}
 .scroll{overflow-x:auto}
 </style>
 </head>
@@ -74,12 +98,33 @@ th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;lett
 <div class="wrap">
 
 <h1>카파도키아 벌룬 확률</h1>
-<p class="sub">괴레메 · ERA5 재분석 <span id="yrs">15</span>년 기후값 + 다중모델 앙상블 예보 · 모든 데이터는 브라우저가 직접 가져옵니다</p>
+<p class="sub" id="subline">터키 괴레메 · 열기구가 뜰 가능성을 날씨로 추정합니다</p>
+<div class="row" style="margin:-10px 0 20px;align-items:center;gap:10px">
+  <button id="btnRefresh">예보 새로고침</button>
+  <span class="sub" style="margin:0" id="freshness"></span>
+</div>
 
-<div class="big" id="big"></div>
+<div class="card" style="border-color:var(--trip)">
+  <h2>여행 기간</h2>
+  <div id="tripbox"><span class="log">계산 중…</span></div>
+</div>
 
 <div class="card">
-  <h2>16일 앙상블 예보</h2>
+  <h2>앞으로 3개월</h2>
+  <div class="months" id="months"></div>
+  <div class="legend" style="margin-bottom:12px">
+    <span><i style="background:var(--accent);border-radius:50%"></i>파란 점 = 실제 일기예보가 반영된 날</span>
+    <span style="color:var(--trip)">■ 여행 기간</span>
+  </div>
+  <div class="note">
+    가까운 날은 <b>실제 일기예보</b>로, 16일 넘게 남은 날은 <b>지난 15년 같은 날짜의 평균</b>으로 계산합니다.
+    먼 날짜의 숫자는 "이날 이렇게 될 것이다"가 아니라 <b>"예년에 이 정도였다"</b>는 뜻입니다.
+  </div>
+</div>
+
+<div class="card">
+  <h2>가까운 16일</h2>
+  <div class="big" id="big"></div>
   <div class="strip" id="strip"><span class="log">불러오는 중…</span></div>
   <div class="legend">
     <span><i class="bg-g"></i>70% 이상</span><span><i class="bg-m"></i>40~70%</span><span><i class="bg-b"></i>40% 미만</span>
@@ -88,59 +133,88 @@ th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;lett
   <div class="note" id="fcnote"></div>
 </div>
 
-<div class="card">
-  <h2>3개월 전망</h2>
-  <div class="months" id="months"></div>
-  <div class="note">D+16 이내는 <b>실제 예보</b>, 그 이후는 <b>과거 <span class="yrs2">15</span>년 같은 날짜의 기후 확률</b>입니다. 먼 날짜 숫자는 "예보"가 아니라 "역대 이 정도였다"는 뜻입니다.</div>
-</div>
-
-<div class="card">
-  <h2>운항 기록 <span style="font-weight:400;text-transform:none;letter-spacing:0">— 매일 쌓입니다</span></h2>
-  <div class="row" style="margin-bottom:12px;align-items:center">
-    <button id="btnScrape">지금 사이트에서 읽어오기</button>
-    <button id="btnBackfill">빈 날짜 기상으로 채우기</button>
-    <button id="btnExport">JSON 내보내기</button>
-    <button id="btnImport">JSON 가져오기</button>
-    <input type="file" id="fileImport" accept=".json" class="hide">
-    <span class="log" id="logStat" style="max-height:none;background:none;padding:0"></span>
+<details>
+  <summary>운항 기록<span class="hint" id="logStat"></span></summary>
+  <div class="dbody">
+    <div class="note" style="margin-top:0">
+      실제로 뜬 날과 못 뜬 날을 기록해두는 곳입니다. 이게 쌓여야 이 앱이 스스로 맞는지 확인할 수 있습니다.
+      <b>초록 O = 뜸, 빨강 X = 취소.</b> 연한 초록은 날씨로 추정만 한 날입니다.
+    </div>
+    <div class="row" style="margin:14px 0 12px;align-items:center">
+      <button id="btnScrape">오늘 상태 읽어오기</button>
+      <button id="btnBackfill">빈 날짜 채우기</button>
+      <button id="btnExport">저장(JSON)</button>
+      <button id="btnImport">불러오기</button>
+      <input type="file" id="fileImport" accept=".json" class="hide">
+    </div>
+    <div id="logcal"></div>
+    <div class="legend">
+      <span><i class="bg-g"></i>뜸</span><span><i class="bg-b"></i>취소</span>
+      <span><i style="background:var(--panel2);border:1.5px solid var(--line)"></i>기록 없음</span>
+      <span>· 칸을 누르면 <b>뜸 → 취소 → 기록없음</b>으로 직접 고칠 수 있습니다</span>
+    </div>
+    <div class="note warn" id="scrapenote">
+      브라우저 보안 때문에 다른 사이트를 직접 읽지 못합니다. 중계 서버를 거쳐 시도하고, 막히면 날씨로 추정합니다.
+    </div>
   </div>
-  <div id="logcal"></div>
-  <div class="legend">
-    <span><i class="bg-g"></i>운항</span><span><i class="bg-b"></i>취소</span>
-    <span><i style="background:var(--panel2);border:1px solid var(--line)"></i>기록 없음</span>
-    <span>· 칸을 클릭하면 <b>운항 → 취소 → 기록없음</b> 순으로 직접 수정</span>
-  </div>
-  <div class="note warn" id="scrapenote">브라우저 보안(CORS) 때문에 다른 사이트 HTML을 직접 못 읽습니다. 무료 공개 프록시를 경유해 시도하며, 막히면 아래 기상 자동추정으로 대체됩니다. 확실한 자동 수집을 원하면 GitHub Pages 배포본을 쓰세요.</div>
-</div>
+</details>
 
-<div class="card">
-  <h2>계절 형태 대조 <span style="font-weight:400;text-transform:none;letter-spacing:0">— 모델 vs 실측 월별 운항률</span></h2>
-  <div class="scroll" id="monthlybox"><span class="log">계산 대기 중…</span></div>
-</div>
-
-<div class="card">
-  <h2>모델 검증 <span style="font-weight:400;text-transform:none;letter-spacing:0">— 실측 라벨로 채점</span></h2>
-  <div id="fitbox"><span class="log">계산 대기 중…</span></div>
-</div>
-
-<div class="card">
-  <h2>설정 · 진단</h2>
-  <div class="row" style="align-items:flex-end;margin-bottom:14px">
-    <label>기후 산출 연수<input type="number" id="cfgYears" min="5" max="30" step="1" style="width:80px"></label>
-    <label>연간 운항일 기준<input type="number" id="cfgAnchor" min="120" max="330" step="5" style="width:90px"></label>
-    <label>여행 시작<input type="date" id="cfgTripS" style="width:150px"></label>
-    <label>여행 종료<input type="date" id="cfgTripE" style="width:150px"></label>
-    <button class="p" id="btnRecalc">다시 계산</button>
-    <button id="btnClearCache">캐시 비우기</button>
+<details>
+  <summary>이 앱이 얼마나 맞는가<span class="hint" id="fitHint"></span></summary>
+  <div class="dbody">
+    <div id="fitbox"><span class="log">계산 대기 중…</span></div>
   </div>
-  <div class="scroll"><table id="diag"><thead><tr><th>단계</th><th>상태</th><th>비고</th></tr></thead><tbody></tbody></table></div>
-  <div class="log" id="conlog" style="margin-top:12px"></div>
-  <div class="note">
-    <b>이 앱이 하지 않는 것:</b> 날씨만으로는 SHGM 운항위원회 재량·슬롯 제한·사고 후 중단·업체 사정 취소를 예측할 수 없습니다.
-    실제로 풍속 4km/h·시정 38km인 날에도 취소된 사례가 있습니다. 그래서 확률 상한을 95%로 자릅니다.
-    표시 숫자는 <b>기상 조건 기반 추정</b>이지 공식 발표가 아닙니다.
+</details>
+
+<details>
+  <summary>달마다 잘 맞는지 대조<span class="hint" id="monHint"></span></summary>
+  <div class="dbody">
+    <div class="scroll" id="monthlybox"><span class="log">계산 대기 중…</span></div>
   </div>
-</div>
+</details>
+
+<details>
+  <summary>용어 설명<span class="hint">어려운 말이 나오면 여기</span></summary>
+  <div class="dbody">
+    <table>
+      <tbody>
+      <tr><td style="width:150px"><b>역대 평균</b></td><td>지난 15년간 같은 날짜에 날씨가 어땠는지를 모아 계산한 값입니다. 예보가 아닙니다.</td></tr>
+      <tr><td><b>앙상블</b></td><td>유럽 기상센터가 조금씩 다른 조건으로 51번 돌린 예보입니다. 그중 몇 개가 "뜰 수 있다"고 나오는지가 곧 확률입니다.</td></tr>
+      <tr><td><b>편차</b></td><td>51개 예보가 서로 얼마나 엇갈리는지. 클수록 아직 불확실하다는 뜻입니다.</td></tr>
+      <tr><td><b>저층 제트</b></td><td>땅은 잔잔한데 300~800m 상공에만 강한 바람이 흐르는 현상. 맑고 고요한 새벽에 잘 생겨서, 이륙장에서 보면 완벽해 보이는데 실제로는 못 뜹니다. 기구는 옆으로 못 가서 빠른 층에 들어가면 착륙할 때 끌려갑니다.</td></tr>
+      <tr><td><b>이슬점차</b></td><td>기온과 이슬점의 차이. 2도 아래로 좁아지면 안개가 끼기 쉽습니다.</td></tr>
+      <tr><td><b>역전층</b></td><td>위쪽이 아래쪽보다 따뜻한 공기층. 지상을 잔잔하게 만들어 이륙에는 좋지만, 안개를 가두고 그 위에 강풍을 얹기도 합니다.</td></tr>
+      <tr><td><b>취소일 적중률</b></td><td>실제로 못 뜬 날 중 이 앱이 미리 "위험하다"고 말한 비율. <b>이 앱에서 가장 중요한 숫자입니다.</b></td></tr>
+      <tr><td><b>Brier</b></td><td>확률을 맞히는 실력 점수. 낮을수록 좋습니다. "무조건 뜬다"고만 찍는 것보다 낮아야 쓸모가 있습니다.</td></tr>
+      <tr><td><b>SHGM</b></td><td>터키 민간항공청. 매일 새벽 이 기관이 운항 여부를 최종 결정합니다.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<details>
+  <summary>설정 · 상태<span class="hint" id="diagHint"></span></summary>
+  <div class="dbody">
+    <div class="row" style="align-items:flex-end;margin-bottom:16px">
+      <label>과거 몇 년치<input type="number" id="cfgYears" min="5" max="30" step="1" style="width:80px"></label>
+      <label>연간 운항일 기준<input type="number" id="cfgAnchor" min="120" max="330" step="5" style="width:90px"></label>
+      <label>여행 시작<input type="date" id="cfgTripS" style="width:155px"></label>
+      <label>여행 종료<input type="date" id="cfgTripE" style="width:155px"></label>
+      <button class="p" id="btnRecalc">다시 계산</button>
+      <button id="btnClearCache">캐시 비우기</button>
+    </div>
+    <div class="scroll"><table id="diag"><thead><tr><th>단계</th><th>상태</th><th>비고</th></tr></thead><tbody></tbody></table></div>
+    <div class="log" id="conlog" style="margin-top:12px"></div>
+    <div class="note warn">
+      <b>이 앱이 못 하는 일.</b> 날씨가 멀쩡해도 취소되는 날이 있습니다. 항공청 판단, 슬롯 제한, 사고 후 중단, 업체 사정 같은 건
+      날씨로 예측할 수 없습니다. 실제로 바람 4km/h·시정 38km인 날에도 취소된 적이 있습니다.
+      그래서 확률은 아무리 좋아도 95%에서 자릅니다. 여기 숫자는 <b>참고용 추정</b>이지 공식 발표가 아닙니다.
+    </div>
+    <div class="sub" style="margin:14px 0 0;font-size:11px" id="yrs2wrap">
+      기후 계산 연수 <span class="yrs2">15</span>년 · <span id="yrs"></span>
+    </div>
+  </div>
+</details>
 
 </div>
 
@@ -409,7 +483,7 @@ const COMMON = { latitude:cfg.lat, longitude:cfg.lon, timezone:cfg.tz, wind_spee
 async function buildClimatology(force){
   const cacheKey = LSK.clim;
   const cached = load(cacheKey, null);
-  if(!force && cached && cached.years===cfg.years && cached.anchor===cfg.anchorDays && cached.v===4){
+  if(!force && cached && cached.years===cfg.years && cached.anchor===cfg.anchorDays && cached.v===5){
     diag("기후값(ERA5)", true, "캐시 사용 · "+cached.n+"일 표본");
     return cached;
   }
@@ -418,7 +492,7 @@ async function buildClimatology(force){
   const chunks = [];
   for(let y=startY; y<=endY; y+=3) chunks.push([y, Math.min(y+2, endY)]);
 
-  const sevs = [], byDoy = {}, byMonth = {};
+  const sevs = [], byDoy = {}, byMonth = {}, dayS = {};
   let varTier = 0, done = 0;
   const dRow = diag("기후값(ERA5)", null, chunks.length+"개 구간 요청");
 
@@ -444,6 +518,7 @@ async function buildClimatology(force){
       (byDoy[dy] = byDoy[dy] || []).push(s);
       const mo = +date.slice(5,7);
       (byMonth[mo] = byMonth[mo] || []).push(s);
+      dayS[date] = Math.round(s*100)/100;
     }
     done++;
     diagSet(dRow, null, `${done}/${chunks.length} 구간 · ${sevs.length}일 누적`);
@@ -469,7 +544,7 @@ async function buildClimatology(force){
     monthly[m] = arr && arr.length ? arr.reduce((a,x)=>a+prob(x,s0),0)/arr.length : null;
   }
 
-  const out = { v:4, years:cfg.years, anchor:cfg.anchorDays, s0, clim, monthly, n:sevs.length, tier:varTier, built:new Date().toISOString() };
+  const out = { v:5, years:cfg.years, dayS, anchor:cfg.anchorDays, s0, clim, monthly, n:sevs.length, tier:varTier, built:new Date().toISOString() };
   save(cacheKey, out);
   diagSet(dRow, true, `${sevs.length}일 표본 · s0=${s0.toFixed(2)} · 변수세트 ${varTier} (${VARSETS[varTier].length}종)`);
   return out;
@@ -650,7 +725,7 @@ function renderBig(){
     { k: D.add(TODAY,1), lbl:"내일" },
     { k: D.add(TODAY,2), lbl:"모레" }
   ];
-  if(cfg.tripStart && cfg.tripStart >= TODAY) items.push({ k:cfg.tripStart, lbl:"여행 첫날", trip:true });
+
 
   $("#big").innerHTML = items.map(it=>{
     const c = F ? combine(it.k, F, clim) : null;
@@ -658,10 +733,10 @@ function renderBig(){
     const rec = flightLog[it.k];
     let meta = "";
     if(c){
-      if(c.kind==="clim") meta = `역대 ${clim?clim.years:"?"}년 기후 확률`;
-      else meta = `모델 ${c.n||1}종${c.spread!=null?` · 편차 ${Math.round(c.spread*100)}%p`:""} · D+${c.lead}`;
+      if(c.kind==="clim") meta = `역대 ${clim?clim.years:"?"}년 평균`;
+      else meta = `예보 ${c.n||1}개 종합` + (c.spread!=null && c.spread>0.25 ? " · 아직 엇갈림" : "");
     }
-    if(rec) meta = (rec.s==="flew"?"기록: 운항":"기록: 취소") + ` (${rec.src})` + (meta?" · "+meta:"");
+    if(rec) meta = (rec.s==="flew"?"실제로 떴습니다":"실제로 취소됐습니다") + (meta?" · "+meta:"");
     return `<div class="bigcard" style="${it.trip?"border-color:var(--trip)":""}">
       <div class="lbl">${esc(it.lbl)} · ${D.label(it.k)}</div>
       <div class="pct ${cls(p)}">${pctS(p)}</div>
@@ -669,6 +744,83 @@ function renderBig(){
       <div class="meta">${esc(meta)}</div>
     </div>`;
   }).join("");
+}
+
+
+/* ── 여행 기간: "며칠 중 최소 하루라도 뜰 확률" ──
+   날짜별 확률을 그냥 곱하면 안 된다. 취소는 뭉쳐서 온다(2026-08-10~15 처럼 6일 연속).
+   그래서 과거 N년의 "같은 날짜 구간"을 통째로 꺼내 실제로 며칠이나 떴는지 세는 쪽이 정직하다. */
+function tripOutlook(){
+  const clim = STATE.clim;
+  if(!clim || !cfg.tripStart || !cfg.tripEnd) return null;
+  const days = [];
+  for(let k=cfg.tripStart; k<=cfg.tripEnd; k=D.add(k,1)){
+    days.push(k);
+    if(days.length>31) break;
+  }
+  if(!days.length) return null;
+
+  // 1) 날짜별 표시 확률 (예보 범위면 예보, 아니면 기후)
+  const per = days.map(k=>{
+    const c = STATE.F ? combine(k, STATE.F, clim) : null;
+    return { date:k, p: capP(c && c.p), kind: c ? c.kind : "clim" };
+  });
+
+  // 2) 과거 같은 기간을 연도별로 재생: 며칠 떴나 / 하루도 못 뜬 해가 있었나
+  const years = [];
+  const endY = new Date().getFullYear()-1, startY = endY - clim.years + 1;
+  for(let y=startY; y<=endY; y++){
+    let flew = 0, have = 0;
+    for(const k of days){
+      const sv = clim.dayS ? clim.dayS[y + k.slice(4)] : undefined;
+      if(sv==null) continue;
+      have++;
+      if(prob(sv, clim.s0) >= 0.5) flew++;
+    }
+    if(have === days.length) years.push({ y, flew });
+  }
+  const nY = years.length;
+  const zero = years.filter(v=>v.flew===0).length;
+  const atLeastOne = nY ? 1 - zero/nY : null;
+  const avgFlew = nY ? years.reduce((a,v)=>a+v.flew,0)/nY : null;
+
+  // 3) 참고: 날짜별 확률을 독립으로 곱한 값 (보통 위보다 낙관적으로 나온다)
+  let indep = 1;
+  let ok = true;
+  for(const d of per){ if(d.p==null){ ok=false; break; } indep *= (1-d.p); }
+  indep = ok ? 1-indep : null;
+
+  return { days, per, nY, zero, atLeastOne, avgFlew, indep, years };
+}
+
+function renderTrip(){
+  const box = $("#tripbox");
+  const t = tripOutlook();
+  if(!t){ box.innerHTML = '<span class="log">여행 기간을 설정하면 여기에 표시됩니다.</span>'; return; }
+  const pctS2 = p => p==null ? "—" : Math.round(p*100)+"%";
+
+  const cells = t.per.map(d=>{
+    const p = d.p;
+    return `<div class="tday">
+      <div class="tdate">${D.label(d.date)}</div>
+      <div class="tpct ${cls(p)}">${pctS2(p)}</div>
+      <div class="tbar"><i class="${bgc(p)}" style="width:${p?Math.round(p*100):0}%"></i></div>
+      <div class="tkind">${d.kind==="clim"?"역대 평균":"예보"}</div>
+    </div>`;
+  }).join("");
+
+  const head = t.atLeastOne==null ? "" :
+    `<div class="hero">
+       <div class="herolbl">${t.days.length}일 중 <b>최소 하루</b>는 뜰 가능성</div>
+       <div class="heropct ${cls(t.atLeastOne)}">${pctS2(t.atLeastOne)}</div>
+       <div class="herosub">지난 ${t.nY}년간 같은 날짜 ${t.days.length}일을 통째로 봤을 때,
+         하루도 못 뜬 해는 <b>${t.zero}번</b>이었습니다. 평균 <b>${t.avgFlew==null?"—":t.avgFlew.toFixed(1)}일</b> 떴습니다.</div>
+     </div>`;
+
+  box.innerHTML = head + `<div class="tdays">${cells}</div>` +
+    `<div class="note">여행이 여러 날이면 하루하루 확률보다 이 숫자가 중요합니다.
+       벌룬 투어는 취소되면 보통 다음 날로 넘겨주기 때문에, 기간 중 한 번만 뜨면 되니까요.
+       <b>일정 앞쪽에 예약할수록</b> 밀렸을 때 다시 시도할 날이 남습니다.</div>`;
 }
 
 function renderStrip(){
@@ -685,14 +837,14 @@ function renderStrip(){
   }
   $("#strip").innerHTML = html;
   if(STATE.ens){
-    $("#fcnote").innerHTML = `<b>${esc(STATE.ens.label)}</b> 사용 중 — 멤버 ${STATE.ens.members}개 각각을 판정해 그중 "뜰 수 있다"는 비율을 확률로 씁니다.
-      결정론 모델 여러 개를 평균내는 것보다 확률의 의미가 분명합니다.`;
+    $("#fcnote").innerHTML = `유럽 기상센터가 조금씩 다른 조건으로 <b>${STATE.ens.members}번</b> 돌린 예보를 씁니다.
+      그중 몇 번이 "뜰 수 있다"고 나오는지가 곧 위 확률입니다.`;
     return;
   }
   const n = F.okModels.length;
   $("#fcnote").innerHTML = n
-    ? `앙상블 참여 모델 <b>${n}종</b>: ${esc(F.okModels.join(", "))}. 모델 간 편차가 크면 그만큼 불확실하다는 뜻입니다.`
-    : `개별 모델 호출이 모두 실패해 기본 예보 하나만 쓰고 있습니다. 앙상블 편차는 표시되지 않습니다.`;
+    ? `기상 모델 <b>${n}개</b>의 예보를 종합했습니다: ${esc(F.okModels.join(", "))}.`
+    : `모델을 하나밖에 못 불러왔습니다. 확률이 평소보다 거칠 수 있습니다.`;
 }
 
 function monthGrid(year, month, cellFn){
@@ -714,11 +866,13 @@ function renderMonths(){
     const dt = new Date(base.getFullYear(), base.getMonth()+m, 1);
     html += `<div><div class="mtitle">${dt.getFullYear()}년 ${dt.getMonth()+1}월</div>` +
       monthGrid(dt.getFullYear(), dt.getMonth(), (k,d)=>{
-        if(k < TODAY) return `<div class="c" style="opacity:.25"><span class="n">${d}</span></div>`;
+        if(k < TODAY) return `<div class="c past"><span class="n">${d}</span></div>`;
         const c = F ? combine(k, F, clim) : (clim ? {p:clim.clim[D.doy(k)], kind:"clim"} : null);
         const p = capP(c && c.p);
-        return `<div class="c ${inTrip(k)?"trip":""}" title="${k}${c&&c.kind==="clim"?" · 기후 확률":" · 예보 반영"}">
-          <span class="n">${d}</span><span class="p ${cls(p)}">${p==null?"—":Math.round(p*100)}</span></div>`;
+        const isFc = c && c.kind !== "clim";
+        return `<div class="c ${inTrip(k)?"trip":""}" title="${k} · ${isFc?"일기예보 반영":"역대 평균"}">
+          <span class="n">${d}</span><span class="p ${cls(p)}">${p==null?"—":Math.round(p*100)}</span>
+          ${isFc?'<span style="position:absolute;top:3px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--accent)"></span>':''}</div>`;
       }) + "</div>";
   }
   $("#months").innerHTML = html;
@@ -756,14 +910,32 @@ function renderLog(){
 function refit(){
   if(!STATE.F) return;
   STATE.fit = fitFromLabels(STATE.clim ? STATE.clim.s0 : 3.0);
-  renderFit(); renderBig(); renderStrip(); renderMonths();
+  renderFit(); renderBig(); renderStrip(); renderMonths(); renderTrip();
+}
+function fillHints(){
+  const f = STATE.fit, clim = STATE.clim;
+  const rc = f && f.cv && f.cv.recallCancel;
+  const el = $("#fitHint");
+  if(el) el.textContent = rc==null ? (f && f.n ? "채점 중" : "기록이 더 필요합니다")
+    : `못 뜬 날 ${Math.round(rc*100)}% 를 미리 짚었습니다`;
+  const mh = $("#monHint");
+  if(mh && clim && clim.monthly){
+    let sa=0,c=0;
+    for(let m=1;m<=12;m++){
+      const mo=clim.monthly[m], ref=MEASURED[2026][m]!=null?MEASURED[2026][m]:MEASURED[2025][m];
+      if(mo!=null&&ref!=null){ sa+=Math.abs(mo-ref); c++; }
+    }
+    mh.textContent = c ? `평균 ${Math.round(sa/c*100)}%p 차이` : "";
+  }
+  const dh = $("#diagHint");
+  if(dh) dh.textContent = diagRows.some(d=>d.ok===false) ? "문제 있음" : "정상";
 }
 function renderStat(){
   const ks = Object.keys(flightLog);
   const off = ks.filter(k=>["official","scrape","manual"].includes(flightLog[k].src));
   const flew = ks.filter(k=>flightLog[k].s==="flew").length;
   $("#logStat").textContent = ks.length
-    ? `${ks.length}일 기록 (실측 ${off.length} · 자동추정 ${ks.length-off.length}) · 운항률 ${Math.round(flew/ks.length*100)}%`
+    ? `${ks.length}일 기록 · 이 중 ${flew}일 뜸`
     : "아직 기록 없음";
 }
 
@@ -856,6 +1028,7 @@ $("#fileImport").onchange = e => {
   };
   rd.readAsText(f);
 };
+$("#btnRefresh").onclick = () => boot(false);
 $("#btnScrape").onclick = scrapeToday;
 $("#btnBackfill").onclick = backfill;
 $("#btnClearCache").onclick = () => { localStorage.removeItem(LSK.clim); con("기후값 캐시 삭제됨. 다시 계산을 누르세요."); };
@@ -932,8 +1105,9 @@ function renderMonthly(){
   const mae = cnt ? sumAbs/cnt : null;
   $("#monthlybox").innerHTML =
     `<table><thead><tr><th>월</th><th>모델(ERA5 기후)</th><th>2025 실측</th><th>2026 실측</th><th>모델−2025</th></tr></thead><tbody>${rows}</tbody></table>` +
-    `<div class="note ${mae!=null && mae>0.12 ? "warn":""}">평균 절대오차 <b>${mae==null?"—":Math.round(mae*100)+"%p"}</b>.
-      10%p 이내면 계절 형태를 대체로 맞춘 것이고, 특정 달만 크게 어긋나면 그 달의 취소 원인(안개·저층제트 등)을 모델이 못 잡고 있다는 뜻입니다.</div>` +
+    `<div class="note ${mae!=null && mae>0.12 ? "warn":""}">평균적으로 <b>${mae==null?"—":Math.round(mae*100)+"%p"}</b> 어긋납니다.
+      한 달만 크게 틀리면 그달의 취소 원인을 이 앱이 못 잡고 있다는 뜻입니다.
+      특히 겨울에 실제보다 높게 나오는 건 계곡 안개 때문인데, 안개는 워낙 낮게 깔려서 기상 모델 격자로는 안 보입니다.</div>` +
     `<div class="note">2025 수치는 balloonscanner 집계(출처 미공개)라 참고용이고, 2026 수치는 epicturkeytravel이 SHGM 결정을 매일 기록한 138일치입니다.
       두 해 사이에도 5월(74%→55%)·8월(83%→70%)처럼 큰 차이가 나므로, 한 해 값을 정답처럼 쓰면 안 됩니다.</div>`;
 }
@@ -949,17 +1123,27 @@ function renderFit(){
   if(f.rule) html += `<tr><td>규칙 기반(현행 기본값)</td><td>${pc(f.rule.acc)}</td><td>${pc(f.rule.recallCancel)}</td><td>${bz(f.rule.brier)}</td><td>규정·문헌 기반 임계값</td></tr>`;
   if(f.cv)  html += `<tr><td>실측 학습(교차검증)</td><td>${pc(f.cv.acc)}</td><td>${pc(f.cv.recallCancel)}</td><td>${bz(f.cv.brier)}</td><td>${f.cv.n}일 홀드아웃</td></tr>`;
   html += `</tbody></table></div>`;
-  html += `<div class="note ${f.use?"":"warn"}"><b>${f.use?"학습 모델을 씁니다.":"규칙 기반을 유지합니다."}</b> ${esc(f.reason)}
-    · 실측 ${f.n}일 (운항 ${f.nFlew} / 취소 ${f.nCanc})</div>`;
+  const rc = f.cv && f.cv.recallCancel;
+  html += `<div class="note ${f.use?"":"warn"}"><b>${f.use?"실제 기록으로 학습한 쪽을 씁니다.":"기본 규칙을 그대로 씁니다."}</b>
+    실제로 확인된 ${f.n}일 (뜬 날 ${f.nFlew} / 취소 ${f.nCanc}) 기준입니다.</div>`;
+  if(rc != null){
+    const verdict = rc >= 0.6 ? ["g","쓸 만합니다"] : rc >= 0.35 ? ["m","절반은 놓칩니다"] : ["b","아직 못 미덥습니다"];
+    html += `<div class="note"><b class="${verdict[0]}">${verdict[1]}.</b>
+      실제로 못 뜬 날 ${f.nCanc}일 중 <b>${Math.round(rc*f.nCanc)}일</b>을 미리 "위험하다"고 짚었습니다 (${Math.round(rc*100)}%).
+      나머지는 날씨가 멀쩡해 보였는데 취소된 날이거나, 이 앱이 놓친 날입니다.</div>`;
+  }
   if(f.use && f.model){
     const w = f.model.w;
-    html += `<div class="note">학습된 가중치 (음수일수록 취소 쪽으로 미는 요인): ` +
-      FEATN.map((nm,i)=>`${esc(nm)} ${w[i]>=0?"+":""}${w[i].toFixed(2)}`).join(" · ") + `</div>`;
+    const ranked = FEATN.map((nm,i)=>({nm, v:w[i]})).filter(x=>Math.abs(x.v)>0.15)
+      .sort((a,b)=>Math.abs(b.v)-Math.abs(a.v)).slice(0,4);
+    if(ranked.length){
+      html += `<div class="note">기록으로 배운 결과, 취소를 가장 잘 예고한 것은 ` +
+        `<b>${ranked.map(x=>esc(x.nm)).join(", ")}</b> 순이었습니다.
+        표본이 ${f.n}일뿐이라 순서는 앞으로 바뀔 수 있습니다.</div>`;
+    }
   }
-  html += `<div class="note">확률 앱의 진짜 점수는 정확도가 아니라 <b>Brier</b>(낮을수록 좋음)입니다.
-    기준선보다 낮아야 "확률을 말할 자격"이 있는 모델입니다.</div>`;
-  html += `<div class="note warn"><b>취소일 적중률</b>이 낮으면 이 앱은 "웬만하면 뜬다"고만 말하는 셈입니다.
-    실제로 못 뜬 날을 얼마나 잡아내는지가 이 앱의 존재 이유이므로, 정확도보다 이 숫자를 보세요.</div>`;
+  html += `<div class="note">표에서 볼 것은 <b>취소일 적중률</b> 하나입니다. 정확도는 "무조건 뜬다"고만 찍어도
+    ${pc(f.base)} 나오기 때문에 의미가 없습니다. Brier는 확률을 맞히는 실력 점수로, 맨 윗줄보다 낮아야 합니다.</div>`;
   $("#fitbox").innerHTML = html;
 }
 
@@ -989,8 +1173,9 @@ async function mergeServerLog(){
 async function boot(force){
   $("#cfgYears").value = cfg.years; $("#cfgAnchor").value = cfg.anchorDays;
   $("#cfgTripS").value = cfg.tripStart || ""; $("#cfgTripE").value = cfg.tripEnd || "";
-  $("#yrs").textContent = cfg.years;
+  const yrsEl = $("#yrs"); if(yrsEl) yrsEl.textContent = "기록 " + Object.keys(flightLog).length + "일";
   document.querySelectorAll(".yrs2").forEach(e=>e.textContent = cfg.years);
+  $("#freshness").textContent = "예보 불러오는 중…";
   diagRows.length = 0; renderDiag(); conEl.textContent = "";
   renderLog();
 
@@ -1022,7 +1207,13 @@ async function boot(force){
   renderFit();
   diag("모델 채점", true, STATE.fit.n ? `실측 ${STATE.fit.n}일 · ${STATE.fit.reason}` : STATE.fit.reason);
 
-  renderBig(); renderStrip(); renderMonths();
+  renderTrip(); renderBig(); renderStrip(); renderMonths();
+  fillHints();
+
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,"0"), mm = String(now.getMinutes()).padStart(2,"0");
+  $("#freshness").textContent =
+    `${hh}:${mm}에 받아온 예보입니다 · 페이지를 열거나 새로고침할 때마다 최신으로 다시 받아옵니다`;
 
   // 기록이 하나도 없으면 첫 실행 시 자동 채움
   if(!Object.keys(flightLog).length) backfill();
