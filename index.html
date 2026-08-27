@@ -216,7 +216,9 @@ a{color:var(--accent)}
   <div class="dbody">
     <div class="note" style="margin-top:0">
       실제로 뜬 날과 못 뜬 날을 기록해두는 곳입니다. 이게 쌓여야 이 앱이 스스로 맞는지 확인할 수 있습니다.
-      <b>초록 O = 뜸, 빨강 X = 취소.</b> 연한 초록은 날씨로 추정만 한 날입니다.
+      <b>색이 있는 O·X만 실제로 확인된 날</b>이고, 회색 <b>?</b>는 날씨만 보고 찍어본 값입니다.
+      추정은 실제로 못 뜬 날의 3분의 1 정도밖에 못 잡으니 믿지 마세요. 직접 아시는 날은 눌러서 고쳐주시면
+      그만큼 이 앱이 똑똑해집니다.
     </div>
     <div class="row" style="margin:14px 0 12px;align-items:center">
       <button id="btnScrape">오늘 상태 읽어오기</button>
@@ -227,9 +229,9 @@ a{color:var(--accent)}
     </div>
     <div id="logcal"></div>
     <div class="legend">
-      <span><i class="bg-g"></i>뜸</span><span><i class="bg-b"></i>취소</span>
-      <span><i style="background:var(--panel2);border:1.5px solid var(--line)"></i>기록 없음</span>
-      <span>· 칸을 누르면 <b>뜸 → 취소 → 기록없음</b>으로 직접 고칠 수 있습니다</span>
+      <span><i class="bg-g"></i>실제로 떴음</span><span><i class="bg-b"></i>실제로 취소</span>
+      <span><i style="background:var(--panel2);border:1.5px solid var(--line)"></i><b>?</b> 날씨로 찍어본 값</span>
+      <span>· 칸을 누르면 <b>뜸 → 취소 → 지움</b>으로 직접 고칠 수 있습니다</span>
     </div>
     <div class="note warn" id="scrapenote">
       브라우저 보안 때문에 다른 사이트를 직접 읽지 못합니다. 중계 서버를 거쳐 시도하고, 막히면 날씨로 추정합니다.
@@ -1082,11 +1084,20 @@ function renderLog(){
       monthGrid(dt.getFullYear(), dt.getMonth(), (k,d)=>{
         if(k > TODAY) return `<div class="c" style="opacity:.2"><span class="n">${d}</span></div>`;
         const r = flightLog[k];
-        const bg = !r ? "" : (r.s==="flew" ? "background:var(--good);color:#08130a" : "background:var(--bad);color:#160607");
-        const mark = !r ? "" : (r.s==="flew" ? "O" : "X");
-        const dim = r && (r.src==="auto") ? "opacity:.55" : "";
-        return `<div class="c on" data-k="${k}" style="${bg};${dim}" title="${k}${r?" · "+r.s+" ("+r.src+")":" · 기록 없음"}">
-          <span class="n" style="${r?"color:inherit;opacity:.7":""}">${d}</span><span class="p">${mark}</span></div>`;
+        const guess = r && r.src === "auto";
+        let bg = "", mark = "", tip = "기록 없음";
+        if(r && !guess){
+          bg = r.s==="flew" ? "background:var(--good);color:#08130a" : "background:var(--bad);color:#160607";
+          mark = r.s==="flew" ? "O" : "X";
+          tip = (r.s==="flew" ? "떴음" : "취소") + " · 실제 기록";
+        } else if(guess){
+          // 날씨로 찍어본 값일 뿐이다. 실제로 못 뜬 날의 3분의 1 정도밖에 못 잡는다.
+          bg = "background:var(--panel2);color:var(--dimmer)";
+          mark = "?";
+          tip = "날씨로 추정: " + (r.s==="flew" ? "떴을 듯" : "취소였을 듯") + " (실제 확인 안 됨)";
+        }
+        return `<div class="c on" data-k="${k}" style="${bg}" title="${k} · ${tip}">
+          <span class="n" style="${r&&!guess?"color:inherit;opacity:.7":""}">${d}</span><span class="p">${mark}</span></div>`;
       }) + "</div>";
   }
   $("#logcal").innerHTML = html;
@@ -1129,8 +1140,9 @@ function renderStat(){
   const ks = Object.keys(flightLog);
   const off = ks.filter(k=>["official","scrape","manual"].includes(flightLog[k].src));
   const flew = ks.filter(k=>flightLog[k].s==="flew").length;
-  $("#logStat").textContent = ks.length
-    ? `${ks.length}일 기록 · 이 중 ${flew}일 뜸`
+  const conf = off.length, cf = ks.filter(k=>["official","scrape","manual"].includes(flightLog[k].src) && flightLog[k].s==="flew").length;
+  $("#logStat").textContent = conf
+    ? `실제 확인 ${conf}일 (떴음 ${cf} · 취소 ${conf-cf}) · 추정 ${ks.length-conf}일`
     : "아직 기록 없음";
 }
 
