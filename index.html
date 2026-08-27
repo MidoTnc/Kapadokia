@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>카파도키아 벌룬 확률</title>
 <style>
 :root{
@@ -15,7 +16,7 @@
   :root{--bg:#f6f8fa;--panel:#fff;--panel2:#f0f3f6;--line:#d8dee6;--fg:#1c2128;--dim:#5b6672;--dimmer:#8b98a9;}
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{margin:0;overflow-x:hidden;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 80px}
 h1{font-size:20px;margin:0 0 2px;letter-spacing:-.02em}
 h2{font-size:14px;margin:0 0 12px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
@@ -91,6 +92,77 @@ details[open]>summary::before{transform:rotate(90deg)}
 details>summary:hover{background:var(--panel2)}
 details>summary .hint{font-weight:400;color:var(--dim);font-size:12px;margin-left:auto}
 .dbody{padding:2px 18px 18px}
+
+/* ── 여행 카드 ── */
+.tripcard{border-color:var(--trip);border-width:2px}
+.tripinput{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.tripinput label{flex:1;min-width:130px}
+.tripinput input{width:100%}
+.tilde{color:var(--dim);padding-bottom:9px}
+.acc{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--dim);
+     background:var(--panel2);border:1.5px solid var(--line);border-radius:999px;padding:5px 13px;margin-top:12px}
+.acc b{color:var(--fg)}
+table.links td{vertical-align:top;padding:9px 8px}
+table.links td:first-child{white-space:nowrap;font-weight:600}
+a{color:var(--accent)}
+
+/* ── 모바일 ── */
+@media (max-width:640px){
+  .wrap{padding:14px 12px 60px}
+  h1{font-size:18px}
+  .sub{font-size:12px}
+  .card,details{border-radius:14px;margin-bottom:12px}
+  .card{padding:14px}
+  .dbody{padding:2px 14px 14px}
+  details>summary{padding:13px 14px;font-size:13.5px}
+  details>summary .hint{display:block;margin:3px 0 0;width:100%}
+  details>summary{flex-wrap:wrap}
+
+  .heropct{font-size:46px}
+  .herosub{font-size:12px}
+  .tdays{grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:7px}
+  .tday{padding:9px 5px;border-radius:11px}
+  .tpct{font-size:19px;margin:3px 0 6px}
+  .tdate{font-size:11px}
+  .tkind{font-size:10px;margin-top:5px}
+
+  .tripinput{gap:7px}
+  .tripinput label{min-width:0;flex:1 1 40%}
+  .tilde{display:none}
+  .tripinput button{flex:1 1 100%}
+
+  /* 3개월: 한 달씩 세로로, 칸을 크게 */
+  .months{grid-template-columns:1fr;gap:14px}
+  .cal{gap:4px}
+  .cal .c{min-height:0;border-radius:9px}
+  .cal .c .n{font-size:9px}
+  .cal .c .p{font-size:13px}
+
+  .big{gap:8px}
+  .bigcard{min-width:0;flex:1 1 30%;padding:12px 10px;border-radius:13px}
+  .bigcard .pct{font-size:28px}
+  .bigcard .lbl{font-size:11px}
+  .bigcard .meta{font-size:11px;margin-top:6px}
+
+  .strip .d{width:44px}
+  .strip .col{height:64px}
+  .strip .col>i{width:22px}
+  .strip .dt{font-size:9px}
+  .strip .vv{font-size:10px}
+
+  .row{gap:8px}
+  button{padding:9px 12px;font-size:13px}   /* 터치 영역 확보 */
+  input,select{padding:9px 10px;font-size:16px}  /* 16px = iOS 자동 확대 방지 */
+  label{font-size:11px}
+  th,td{padding:7px 5px;font-size:11.5px}
+  .note{font-size:12px;padding:10px 11px}
+  .legend{gap:9px;font-size:10.5px}
+  table.links td:first-child{white-space:normal}
+}
+@media (max-width:380px){
+  .tdays{grid-template-columns:repeat(3,1fr)}
+  .bigcard .pct{font-size:24px}
+}
 .scroll{overflow-x:auto}
 </style>
 </head>
@@ -104,8 +176,14 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:12px;margin-lef
   <span class="sub" style="margin:0" id="freshness"></span>
 </div>
 
-<div class="card" style="border-color:var(--trip)">
+<div class="card tripcard">
   <h2>여행 기간</h2>
+  <div class="tripinput">
+    <label>가는 날<input type="date" id="cfgTripS"></label>
+    <span class="tilde">~</span>
+    <label>오는 날<input type="date" id="cfgTripE"></label>
+    <button class="p" id="btnTrip">계산</button>
+  </div>
   <div id="tripbox"><span class="log">계산 중…</span></div>
 </div>
 
@@ -174,6 +252,35 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:12px;margin-lef
 </details>
 
 <details>
+  <summary>참고 사이트<span class="hint">공식 판정처와 다른 예보들</span></summary>
+  <div class="dbody">
+    <p class="note" style="margin-top:0">이 앱은 추정치입니다. <b>실제 운항 여부는 아래 첫 번째 링크가 최종 판정</b>이고,
+      나머지는 다른 곳의 예상치입니다. 출발 전날 밤과 당일 새벽에 직접 확인하세요.</p>
+    <table class="links"><tbody>
+      <tr><td><a href="https://shmkapadokya.kapadokya.edu.tr/" target="_blank" rel="noopener">SHM Kapadokya</a></td>
+          <td><span class="tag ok">공식</span> 매일 새벽 섹터별 운항 판정을 내리는 곳. 근거 METAR도 함께 공개합니다.</td></tr>
+      <tr><td><a href="https://balloonstatus.com/cappadocia/today/" target="_blank" rel="noopener">Balloon Status</a></td>
+          <td>오늘/내일 상태 + 7일 예보. 지난 60일 기록도 공개해서 이 앱의 초기 데이터로 썼습니다.</td></tr>
+      <tr><td><a href="https://epicturkeytravel.com/cappadocia-balloon-flight-status/" target="_blank" rel="noopener">Epic Turkey Travel</a></td>
+          <td>4월부터 매일 기록 중. 월별 실제 운항률을 공개합니다.</td></tr>
+      <tr><td><a href="https://toursce.com/cappadocia-hot-air-balloon-flight-status-cancellation-checker/" target="_blank" rel="noopener">ToursCE</a></td>
+          <td>15일 취소 위험도. 다른 곳과 자주 어긋나니 참고만 하세요.</td></tr>
+      <tr><td><a href="https://hezarfen.mgm.gov.tr/Kapadokya/khcpdkwrfgram.aspx" target="_blank" rel="noopener">터키 기상청 카파도키아 AIRGRAM</a></td>
+          <td>운항위원회가 실제로 보는 고도별 바람 그래프. 어렵지만 원본입니다.</td></tr>
+      <tr><td><a href="https://www.windy.com/38.643/34.829?38.643,34.829,11" target="_blank" rel="noopener">Windy (괴레메)</a></td>
+          <td>고도별 바람을 눈으로 보고 싶을 때. 850hPa 레이어를 보세요.</td></tr>
+    </tbody></table>
+  </div>
+</details>
+
+<details>
+  <summary>다른 사이트와 비교<span class="hint" id="cmpHint"></span></summary>
+  <div class="dbody">
+    <div id="cmpbox"><span class="log">불러오는 중…</span></div>
+  </div>
+</details>
+
+<details>
   <summary>용어 설명<span class="hint">어려운 말이 나오면 여기</span></summary>
   <div class="dbody">
     <table>
@@ -198,8 +305,6 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:12px;margin-lef
     <div class="row" style="align-items:flex-end;margin-bottom:16px">
       <label>과거 몇 년치<input type="number" id="cfgYears" min="5" max="30" step="1" style="width:80px"></label>
       <label>연간 운항일 기준<input type="number" id="cfgAnchor" min="120" max="330" step="5" style="width:90px"></label>
-      <label>여행 시작<input type="date" id="cfgTripS" style="width:155px"></label>
-      <label>여행 종료<input type="date" id="cfgTripE" style="width:155px"></label>
       <button class="p" id="btnRecalc">다시 계산</button>
       <button id="btnClearCache">캐시 비우기</button>
     </div>
@@ -232,7 +337,11 @@ const DEF = {
   capMax: 0.95,             // 비기상 취소 여지
   winPre: 45, winPost: 120  // 일출 -45분 ~ +2시간 (이륙~착륙 전 구간)
 };
-const LSK = { cfg:"cb.cfg", clim:"cb.clim", log:"cb.log", seed:"cb.seed2" };
+const LSK = { cfg:"cb.cfg", clim:"cb.clim", log:"cb.log", seed:"cb.seed2", fc:"cb.fc" };
+const PAST_DAYS = 92;          // 검증용 라벨(7~8월 실측)의 기상을 덮으려면 이만큼 필요하다.
+                               // 21일로 줄여봤더니 채점 표본이 46일→21일로 반토막 나서 되돌렸다.
+                               // 호출 절감의 대부분은 기후값 정적화에서 나오므로 여기서 아낄 이유가 없다.
+const FC_TTL_MIN = 180;        // 예보 캐시 3시간. 원본 모델도 하루 4번만 갱신된다.
 
 /* ────────────────────────────────────────────────────────────
    실측 시드: balloonstatus.com 공개 기록 (2026-07-05 ~ 08-26)
@@ -279,7 +388,10 @@ const D = {
 const TODAY = D.key(new Date(new Date().toLocaleString("en-US",{timeZone:cfg.tz})));
 
 /* ── fetch 유틸 ── */
+let API_CALLS = 0, API_NOTE = [];
 async function getJSON(url, ms=90000){
+  API_CALLS++;
+  try{ const u = new URL(url); API_NOTE.push(u.hostname.split(".")[0] + (u.searchParams.get("models")||"")); }catch(e){}
   const c = new AbortController();
   const t = setTimeout(()=>c.abort(), ms);
   try{
@@ -468,6 +580,35 @@ function indexHourly(times){
   }
   return by;
 }
+
+/* ── 일출 시각 자체 계산 (NOAA 알고리즘) ──
+   예전에는 이것 때문에 API를 한 번 더 불렀다. 직접 계산하면 호출도 줄고,
+   기후값을 서버에서 미리 만들어둘 때도 같은 값을 쓸 수 있다. */
+function sunriseLocal(dateStr){
+  const [Y,M,Dd] = dateStr.split("-").map(Number);
+  const rad = Math.PI/180;
+  const JD = Date.UTC(Y,M-1,Dd)/864e5 + 2440587.5;        // 그날 00:00 UTC 의 율리우스일
+  const n = Math.ceil(JD - 2451545.0 + 0.0008);
+  const Jstar = n - cfg.lon/360;                            // 동경일수록 남중이 이르다
+  const Msun = (357.5291 + 0.98560028*Jstar) % 360;
+  const C = 1.9148*Math.sin(Msun*rad) + 0.02*Math.sin(2*Msun*rad) + 0.0003*Math.sin(3*Msun*rad);
+  const lam = (Msun + C + 180 + 102.9372) % 360;
+  const Jtransit = 2451545.0 + Jstar + 0.0053*Math.sin(Msun*rad) - 0.0069*Math.sin(2*lam*rad);
+  const decl = Math.asin(Math.sin(lam*rad) * Math.sin(23.4397*rad));
+  const cosW = (Math.sin(-0.833*rad) - Math.sin(cfg.lat*rad)*Math.sin(decl)) /
+               (Math.cos(cfg.lat*rad)*Math.cos(decl));
+  if(cosW > 1 || cosW < -1) return null;
+  const w = Math.acos(cosW)/rad;
+  const ms = ((Jtransit - w/360) - 2440587.5)*864e5 + 3*3600e3;   // 터키는 연중 UTC+3
+  const d = new Date(ms);
+  return dateStr + "T" + String(d.getUTCHours()).padStart(2,"0") + ":" + String(d.getUTCMinutes()).padStart(2,"0");
+}
+function sunriseFor(dates){
+  const m = {};
+  for(const d of dates) { const v = sunriseLocal(d); if(v) m[d] = v; }
+  return m;
+}
+
 function sunriseMap(daily){
   const m={}; if(!daily||!daily.time) return m;
   const sr = daily.sunrise || daily["sunrise"];
@@ -484,9 +625,19 @@ async function buildClimatology(force){
   const cacheKey = LSK.clim;
   const cached = load(cacheKey, null);
   if(!force && cached && cached.years===cfg.years && cached.anchor===cfg.anchorDays && cached.v===5){
-    diag("기후값(ERA5)", true, "캐시 사용 · "+cached.n+"일 표본");
+    diag("기후값", true, "이 브라우저에 저장된 값 사용 · "+cached.n+"일 표본");
     return cached;
   }
+  // 저장소에 미리 만들어둔 기후값이 있으면 그걸 쓴다.
+  // 15년치를 방문자마다 새로 받으면 Open-Meteo 호출이 수백 건씩 나가서 무료 한도를 금방 넘긴다.
+  try{
+    const pre = await getJSON("data/climatology.json", 30000);
+    if(pre && pre.clim && pre.s0 != null){
+      pre.v = 5; save(cacheKey, pre);
+      diag("기후값", true, `미리 계산된 파일 사용 · ${pre.n}일 표본 (API 호출 0건)`);
+      return pre;
+    }
+  }catch(e){ /* 없으면 아래에서 직접 계산 */ }
   const endY = new Date().getFullYear()-1;
   const startY = endY - cfg.years + 1;
   const chunks = [];
@@ -494,7 +645,7 @@ async function buildClimatology(force){
 
   const sevs = [], byDoy = {}, byMonth = {}, dayS = {};
   let varTier = 0, done = 0;
-  const dRow = diag("기후값(ERA5)", null, chunks.length+"개 구간 요청");
+  const dRow = diag("기후값", null, `미리 계산된 파일이 없어 직접 계산합니다 (${chunks.length}구간, 시간이 걸립니다)`);
 
   for(const [a,b] of chunks){
     let data = null;
@@ -503,13 +654,13 @@ async function buildClimatology(force){
     for(let k=0; k<order.length; k++){
       const url = OM("https://archive-api.open-meteo.com/v1/archive", Object.assign({}, COMMON, {
         start_date: a+"-01-01", end_date: b+"-12-31",
-        hourly: order[k].join(","), daily: "sunrise"
+        hourly: order[k].join(",")
       }));
       try { data = await getJSON(url); varTier += k; break; }
       catch(e){ con(`ERA5 ${a}-${b} 변수세트${varTier+k} 실패: ${e.message}`); }
     }
     if(!data){ continue; }
-    const idx = indexHourly(data.hourly.time), sun = sunriseMap(data.daily);
+    const idx = indexHourly(data.hourly.time), sun = sunriseFor(Object.keys(idx));
     for(const date of Object.keys(idx)){
       const s = severity(features(data.hourly, idx, sun, date, ""));
       if(s==null) continue;
@@ -563,25 +714,26 @@ const MODELS = [
   ["metno_seamless","MET Norway"], ["gem_seamless","GEM"], ["ukmo_seamless","UK Met"]
 ];
 async function buildForecast(s0){
-  // 일출은 모델 무관 단일 호출
-  let sun = {};
-  try{
-    const d = await getJSON(OM("https://api.open-meteo.com/v1/forecast", Object.assign({}, COMMON, {
-      daily:"sunrise", past_days:92, forecast_days:16 })));
-    sun = sunriseMap(d.daily);
-    diag("일출 시각", true, Object.keys(sun).length+"일");
-  }catch(e){ diag("일출 시각", false, e.message); }
+  // 일출은 직접 계산한다 (API 호출 없음)
+  const sun = {};
+  {
+    const a = D.add(TODAY,-PAST_DAYS), dates = [];
+    for(let k=a; k<=D.add(TODAY,16); k=D.add(k,1)) dates.push(k);
+    Object.assign(sun, sunriseFor(dates));
+    diag("일출 시각", true, `${Object.keys(sun).length}일 직접 계산 (API 호출 0건)`);
+  }
 
-  // 실황(과거 92일 + 예보) — 모델 미지정 = 최적 조합
+  // 실황 + 기본 예보. past_days 는 라벨 채우기에 필요한 만큼만.
   let analysis = null;
   for(const vs of VARSETS){
     try{
       analysis = await getJSON(OM("https://api.open-meteo.com/v1/forecast", Object.assign({}, COMMON, {
-        hourly: vs.join(","), past_days:92, forecast_days:16 })));
+        hourly: vs.join(","), past_days:PAST_DAYS, forecast_days:14 })));
       break;
     }catch(e){ con("실황 변수세트 실패: "+e.message); }
   }
   if(!analysis) diag("실황/기본예보", false, "모든 변수 조합 실패");
+
   const pAnalysis = {}, featByDate = {};
   if(analysis){
     const idx = indexHourly(analysis.hourly.time);
@@ -592,26 +744,30 @@ async function buildForecast(s0){
       const p = prob(severity(f), s0);
       if(p!=null) pAnalysis[date] = p;
     }
-    diag("실황/기본예보", true, Object.keys(pAnalysis).length+"일 (과거 92일 포함)");
+    diag("실황/기본예보", true, `${Object.keys(pAnalysis).length}일 (과거 ${PAST_DAYS}일 포함)`);
   }
+  return { sun, pAnalysis, featByDate, perModel:{}, featPerModel:{}, okModels:[] };
+}
 
-  // 모델별 앙상블 — 상층풍을 우선 요청하고, 거부되면 지상 변수만으로 재시도
+/* 결정론 모델 6종은 앙상블이 실패했을 때만 부른다.
+   둘 다 부르면 같은 정보를 두 번 사는 셈이고 호출 한도만 축낸다. */
+async function buildDeterministic(F, s0){
   const perModel = {}, featPerModel = {}, okModels = [];
   for(const [id,name] of MODELS){
-    let d = null, used = null;
-    for(const vars of VARSETS){
+    let d = null;
+    for(const vars of [VARSETS[1], VARSETS[2]]){
       try{
         d = await getJSON(OM("https://api.open-meteo.com/v1/forecast", Object.assign({}, COMMON, {
-          hourly: vars.join(","), forecast_days:16, models:id })));
-        used = vars; break;
+          hourly: vars.join(","), forecast_days:14, models:id })));
+        break;
       }catch(e){ /* 다음 조합 */ }
     }
-    if(!d){ con(`모델 ${name}: 응답 없음`); continue; }
+    if(!d) { con(`모델 ${name}: 응답 없음`); continue; }
     const idx = indexHourly(d.hourly.time);
     const suffix = d.hourly["wind_speed_10m"] ? "" : "_"+id;
     const m = {}, fm = {};
     for(const date of Object.keys(idx)){
-      const f = features(d.hourly, idx, sun, date, suffix);
+      const f = features(d.hourly, idx, F.sun, date, suffix);
       if(!f) continue;
       fm[date] = f;
       const p = prob(severity(f), s0);
@@ -619,40 +775,43 @@ async function buildForecast(s0){
     }
     if(Object.keys(m).length){ perModel[name]=m; featPerModel[name]=fm; okModels.push(name); }
   }
-  diag("다중모델 앙상블", okModels.length>0, okModels.length ? okModels.join(", ") : "전부 실패 — 기본예보로 대체");
-  return { sun, pAnalysis, featByDate, perModel, featPerModel, okModels };
+  F.perModel = perModel; F.featPerModel = featPerModel; F.okModels = okModels;
+  diag("개별 모델 예보", okModels.length>0, okModels.length ? okModels.join(", ") : "전부 실패");
+  return F;
 }
 
 
-/* ── 앙상블 API: 결정론 모델 6개를 평균내는 것보다 정직한 확률 ──
+/* ── 앙상블 API: 결정론 모델 여러 개를 평균내는 것보다 정직한 확률 ──
    ECMWF IFS 51멤버 / GFS 31 / ICON 40. "51개 중 몇 개가 뜰 수 있다고 보나"가 곧 확률이다.
-   응답 컬럼은 wind_speed_10m_member01 식이라 접미사를 훑어 멤버별로 재조립한다. */
+   응답 컬럼은 wind_speed_10m_member01 식이라 접미사를 훑어 멤버별로 재조립한다.
+   변수는 10개 이하, 기간은 2주 이하로 유지한다 (Open-Meteo 과금 가중치 기준). */
 async function buildEnsemble(s0){
+  const EVARS = [
+    ["wind_speed_10m","wind_gusts_10m","wind_speed_850hPa","precipitation","temperature_2m","dew_point_2m"],
+    ["wind_speed_10m","wind_gusts_10m","precipitation","temperature_2m","dew_point_2m"],
+    ["wind_speed_10m","wind_gusts_10m","precipitation"]
+  ];
   const CAND = [["ecmwf_ifs025","ECMWF 51멤버"], ["gfs025","GFS 31멤버"], ["icon_global","ICON 40멤버"]];
   for(const [id, label] of CAND){
-    for(const vs of VARSETS){
+    for(const vs of EVARS){
       let d = null;
       try{
         d = await getJSON(OM("https://ensemble-api.open-meteo.com/v1/ensemble", Object.assign({}, COMMON, {
-          hourly: vs.join(","), forecast_days:16, models:id })), 120000);
+          hourly: vs.join(","), forecast_days:14, models:id })), 120000);
       }catch(e){ continue; }
       if(!d || !d.hourly) continue;
-      // 멤버 번호 수집
       const mem = new Set();
       for(const k of Object.keys(d.hourly)){
         const m = k.match(/_member(\d+)$/); if(m) mem.add(m[1]);
       }
       const suffixes = mem.size ? [...mem].sort().map(x=>"_member"+x) : [""];
       const idx = indexHourly(d.hourly.time);
-      let sun = {};
-      if(d.daily) sun = sunriseMap(d.daily);
-      if(!Object.keys(sun).length && STATE.F && STATE.F.sun) sun = STATE.F.sun;
+      const sun = sunriseFor(Object.keys(idx));
       const byDate = {};
       for(const date of Object.keys(idx)){
         const ps = [];
         for(const sfx of suffixes){
-          const f = features(d.hourly, idx, sun, date, sfx);
-          const p = pFromFeat(f, s0);
+          const p = pFromFeat(features(d.hourly, idx, sun, date, sfx), s0);
           if(p!=null) ps.push(p);
         }
         if(ps.length) byDate[date] = ps;
@@ -663,7 +822,7 @@ async function buildEnsemble(s0){
       }
     }
   }
-  diag("앙상블 확률", false, "사용 불가 — 결정론 모델 평균으로 대체");
+  diag("앙상블 확률", false, "사용 불가 — 개별 모델로 대체");
   return null;
 }
 
@@ -793,6 +952,27 @@ function tripOutlook(){
   return { days, per, nY, zero, atLeastOne, avgFlew, indep, years };
 }
 
+
+/* 여행 기간이 걸친 달들의 "모델이 그달에 얼마나 맞았나"를 일수로 가중평균한다.
+   8/30~9/3 처럼 달을 넘기면 8월 2일치·9월 3일치로 가중한다. */
+function tripAccuracy(days){
+  const clim = STATE.clim;
+  if(!clim || !clim.monthly || !days.length) return null;
+  const cnt = {};
+  for(const k of days){ const m = +k.slice(5,7); cnt[m] = (cnt[m]||0)+1; }
+  let wErr = 0, wTot = 0, parts = [];
+  for(const [mStr, c] of Object.entries(cnt)){
+    const m = +mStr;
+    const mod = clim.monthly[m];
+    const obs = MEASURED[2026][m] != null ? MEASURED[2026][m] : MEASURED[2025][m];
+    if(mod==null || obs==null) continue;
+    wErr += Math.abs(mod-obs)*c; wTot += c;
+    parts.push({ m, c, mod, obs, err: mod-obs });
+  }
+  if(!wTot) return null;
+  return { mae: wErr/wTot, parts, months: Object.keys(cnt).map(Number) };
+}
+
 function renderTrip(){
   const box = $("#tripbox");
   const t = tripOutlook();
@@ -817,7 +997,20 @@ function renderTrip(){
          하루도 못 뜬 해는 <b>${t.zero}번</b>이었습니다. 평균 <b>${t.avgFlew==null?"—":t.avgFlew.toFixed(1)}일</b> 떴습니다.</div>
      </div>`;
 
-  box.innerHTML = head + `<div class="tdays">${cells}</div>` +
+  const acc = tripAccuracy(t.days);
+  let accHtml = "";
+  if(acc){
+    const lvl = acc.mae<=0.08 ? ["g","잘 맞는 편"] : acc.mae<=0.15 ? ["m","보통"] : ["b","잘 안 맞는 편"];
+    const MN = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+    const detail = acc.parts.map(p=>
+      `${MN[p.m-1]}은 이 앱이 ${Math.round(p.mod*100)}%로 보는데 실제로는 ${Math.round(p.obs*100)}%였습니다`
+    ).join(" · ");
+    accHtml = `<div class="acc"><span class="${lvl[0]}">●</span>
+        이 시기 예측 정확도 <b>${lvl[1]}</b> · 평균 ${Math.round(acc.mae*100)}%p 차이</div>
+      <div class="note" style="margin-top:10px">${esc(detail)}.
+        ${acc.mae>0.15 ? "차이가 큰 달이라 위 숫자는 넉넉히 감안해서 보세요." : "실제와 크게 벗어나지 않는 시기입니다."}</div>`;
+  }
+  box.innerHTML = head + `<div class="tdays">${cells}</div>` + accHtml +
     `<div class="note">여행이 여러 날이면 하루하루 확률보다 이 숫자가 중요합니다.
        벌룬 투어는 취소되면 보통 다음 날로 넘겨주기 때문에, 기간 중 한 번만 뜨면 되니까요.
        <b>일정 앞쪽에 예약할수록</b> 밀렸을 때 다시 시도할 날이 남습니다.</div>`;
@@ -1029,13 +1222,18 @@ $("#fileImport").onchange = e => {
   rd.readAsText(f);
 };
 $("#btnRefresh").onclick = () => boot(false);
+$("#btnTrip").onclick = () => {
+  cfg.tripStart = $("#cfgTripS").value; cfg.tripEnd = $("#cfgTripE").value;
+  save(LSK.cfg, cfg);
+  renderTrip(); renderMonths(); renderStrip();
+};
+["cfgTripS","cfgTripE"].forEach(id => { const e=$("#"+id); if(e) e.onchange = () => $("#btnTrip").click(); });
 $("#btnScrape").onclick = scrapeToday;
 $("#btnBackfill").onclick = backfill;
 $("#btnClearCache").onclick = () => { localStorage.removeItem(LSK.clim); con("기후값 캐시 삭제됨. 다시 계산을 누르세요."); };
 $("#btnRecalc").onclick = () => {
   cfg.years = +$("#cfgYears").value || DEF.years;
   cfg.anchorDays = +$("#cfgAnchor").value || DEF.anchorDays;
-  cfg.tripStart = $("#cfgTripS").value; cfg.tripEnd = $("#cfgTripE").value;
   save(LSK.cfg, cfg);
   boot(true);
 };
@@ -1110,6 +1308,56 @@ function renderMonthly(){
       특히 겨울에 실제보다 높게 나오는 건 계곡 안개 때문인데, 안개는 워낙 낮게 깔려서 기상 모델 격자로는 안 보입니다.</div>` +
     `<div class="note">2025 수치는 balloonscanner 집계(출처 미공개)라 참고용이고, 2026 수치는 epicturkeytravel이 SHGM 결정을 매일 기록한 138일치입니다.
       두 해 사이에도 5월(74%→55%)·8월(83%→70%)처럼 큰 차이가 나므로, 한 해 값을 정답처럼 쓰면 안 됩니다.</div>`;
+}
+
+
+/* ── 다른 사이트 예보와 나란히 비교 ──
+   브라우저가 직접 못 읽으므로(CORS) GitHub Actions 가 매일 모아 data/forecasts.json 에 넣어둔다.
+   파일이 없으면(로컬 파일로 열었을 때) 이 섹션은 조용히 비활성. */
+async function loadPeers(){
+  try{
+    const j = await getJSON("data/forecasts.json", 20000);
+    if(j && j.sources) { STATE.peers = j; return j; }
+  }catch(e){}
+  STATE.peers = null; return null;
+}
+function renderPeers(){
+  const box = $("#cmpbox"), hint = $("#cmpHint");
+  const p = STATE.peers;
+  if(!p || !p.sources || !Object.keys(p.sources).length){
+    box.innerHTML = `<div class="note warn" style="margin-top:0">아직 수집된 값이 없습니다.
+      이 비교는 저장소의 자동 수집이 하루 한 번 돌아야 채워집니다.
+      (로컬 HTML 파일로 열었을 때는 원래 비어 있습니다.)</div>`;
+    if(hint) hint.textContent = "";
+    return;
+  }
+  const names = Object.keys(p.sources);
+  const dates = [...new Set(names.flatMap(n=>Object.keys(p.sources[n]||{})))].sort().slice(0,14);
+  const mine = d => { const c = STATE.F ? combine(d, STATE.F, STATE.clim) : null; return capP(c && c.p); };
+
+  let rows = "";
+  let diffs = [];
+  for(const d of dates){
+    let cells = "";
+    for(const n of names){
+      const v = p.sources[n][d];
+      cells += `<td>${v==null?"—":`<b class="${cls(v/100)}">${v}%</b>`}</td>`;
+    }
+    const m = mine(d);
+    if(m!=null){
+      for(const n of names){ const v = p.sources[n][d]; if(v!=null) diffs.push(Math.abs(v/100 - m)); }
+    }
+    rows += `<tr><td>${D.label(d)}</td><td><b class="${cls(m)}">${m==null?"—":Math.round(m*100)+"%"}</b></td>${cells}</tr>`;
+  }
+  const mad = diffs.length ? diffs.reduce((a,b)=>a+b,0)/diffs.length : null;
+  box.innerHTML =
+    `<div class="scroll"><table><thead><tr><th>날짜</th><th>이 앱</th>${names.map(n=>`<th>${esc(n)}</th>`).join("")}</tr></thead>
+     <tbody>${rows}</tbody></table></div>` +
+    `<div class="note">숫자는 모두 <b>뜰 가능성</b>으로 맞춰 표시했습니다(취소 위험도로 표기하는 곳은 100에서 뺐습니다).
+      ${mad!=null?`평균 <b>${Math.round(mad*100)}%p</b> 차이납니다.`:""}
+      한 곳만 유독 다르면 그곳을 의심하는 게 맞습니다 — 어느 쪽도 공식 발표가 아닙니다.</div>` +
+    (p.updated ? `<div class="note">수집 시각: ${esc(String(p.updated).slice(0,16).replace("T"," "))} UTC</div>` : "");
+  if(hint) hint.textContent = `${names.length}곳 비교` + (mad!=null?` · 평균 ${Math.round(mad*100)}%p 차이`:"");
 }
 
 function renderFit(){
@@ -1198,9 +1446,23 @@ async function boot(force){
   renderMonths(); renderMonthly();
 
   const s0 = clim ? clim.s0 : 3.0;
-  const F = await buildForecast(s0);
-  STATE.F = F;
-  STATE.ens = await buildEnsemble(s0);
+
+  // 3시간 이내에 받아둔 예보가 있으면 재사용한다 (새로고침 남발로 한도 축내지 않도록)
+  const fcCache = load(LSK.fc, null);
+  const fresh = fcCache && fcCache.t && (Date.now() - fcCache.t) < FC_TTL_MIN*60000 && !force;
+  let F, ens;
+  if(fresh){
+    F = fcCache.F; ens = fcCache.ens;
+    const mins = Math.round((Date.now()-fcCache.t)/60000);
+    diag("예보", true, `${mins}분 전에 받아둔 예보 재사용 (API 호출 0건)`);
+  } else {
+    F = await buildForecast(s0);
+    ens = await buildEnsemble(s0);
+    if(!ens) await buildDeterministic(F, s0);      // 앙상블 실패했을 때만 개별 모델
+    else diag("개별 모델 예보", true, "앙상블이 있어 생략 (호출 절약)");
+    try{ save(LSK.fc, { t: Date.now(), F, ens }); }catch(e){}
+  }
+  STATE.F = F; STATE.ens = ens;
 
   // 라벨로 채점 → 이기면 학습 모델로 교체 → 그 결과로 다시 렌더
   STATE.fit = fitFromLabels(s0);
@@ -1208,7 +1470,11 @@ async function boot(force){
   diag("모델 채점", true, STATE.fit.n ? `실측 ${STATE.fit.n}일 · ${STATE.fit.reason}` : STATE.fit.reason);
 
   renderTrip(); renderBig(); renderStrip(); renderMonths();
+  await loadPeers(); renderPeers();
   fillHints();
+
+  diag("API 호출 수", true, `이번 실행 ${API_CALLS}건` +
+    (API_CALLS<=6 ? " — 무료 한도(하루 10,000건) 대비 매우 적습니다" : " — 캐시가 없어 조금 많이 나갔습니다"));
 
   const now = new Date();
   const hh = String(now.getHours()).padStart(2,"0"), mm = String(now.getMinutes()).padStart(2,"0");
