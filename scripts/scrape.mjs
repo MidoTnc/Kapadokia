@@ -11,6 +11,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 const LAT = 38.6431, LON = 34.8289, TZ = "Europe/Istanbul";
+
+/* 자동 추정 기준이 바뀌면 이 숫자를 올린다.
+   그러면 예전 기준으로 찍어둔 auto 기록을 다음 실행 때 알아서 다시 계산한다.
+   (사람이 넣은 기록과 사이트에서 읽어온 기록은 절대 건드리지 않는다) */
+const EST_VERSION = 3;
 const OUT = new URL("../data/log.json", import.meta.url);
 
 const SITES = [
@@ -19,7 +24,13 @@ const SITES = [
   { name: "epicturkey",    url: "https://epicturkeytravel.com/cappadocia-balloon-flight-status/" }
 ];
 
-const UA = "Mozilla/5.0 (compatible; balloon-log/1.0; +https://github.com)";
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+const HDRS = {
+  "user-agent": UA,
+  "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "accept-language": "en-US,en;q=0.9",
+  "cache-control": "no-cache"
+};
 const pad = n => String(n).padStart(2, "0");
 const todayLocal = () => {
   const p = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
@@ -44,13 +55,24 @@ function verdict(html) {
 }
 
 async function fetchText(url) {
-  const r = await fetch(url, { headers: { "user-agent": UA, "accept-language": "en" }, signal: AbortSignal.timeout(25000) });
+  const r = await fetch(url, { headers: HDRS, signal: AbortSignal.timeout(25000) });
   if (!r.ok) throw new Error("HTTP " + r.status);
   return await r.text();
 }
 
+/* 판정 경계값. 앱은 기후값 계산에서 나온 s0 를 쓴다(연 223일 운항에 맞춰 보정된 값).
+   스크래퍼가 제멋대로 1.9 를 쓰면 앱과 결과가 어긋나고, 실제로 취소일을 하나도 못 잡았다. */
+async function loadS0() {
+  try {
+    const j = JSON.parse(await readFile(new URL("../data/climatology.json", import.meta.url), "utf8"));
+    if (j && typeof j.s0 === "number") { console.log(`판정 경계값 s0=${j.s0.toFixed(3)} (기후값 파일)`); return j.s0; }
+  } catch { }
+  console.log("기후값 파일이 없어 기본 경계값 1.23 사용");
+  return 1.23;
+}
+
 /* Open-Meteo 실황으로 과거 날짜 자동 추정 (앱과 같은 기준) */
-async function autoLabels(days = 60) {
+async function autoLabels(days = 60, s0 = 1.23) {
   const q = new URLSearchParams({
     latitude: LAT, longitude: LON, timezone: TZ, wind_speed_unit: "kn",
     hourly: "wind_speed_10m,wind_gusts_10m,precipitation,visibility,wind_speed_850hPa,temperature_2m,dew_point_2m",
@@ -94,7 +116,8 @@ async function autoLabels(days = 60) {
     if (pr > 0.2) s += 3.5;
     if (vi < 2000) s += 3.5; else if (vi < 5000) s += 1;
     if (dd < 2.2 && w < 7) s += 1.5;
-    out[date] = { s: s < 1.9 ? "flew" : "cancelled", src: "auto", note: `s=${s.toFixed(2)}` };
+    // 앱과 동일: p = 1/(1+exp(1.6*(s-s0))) 가 0.5 미만이면 취소. 즉 s > s0.
+    out[date] = { s: s <= s0 ? "flew" : "cancelled", src: "auto", est: EST_VERSION, note: `s=${s.toFixed(2)}` };
   }
   return out;
 }
@@ -122,27 +145,33 @@ const main = async () => {
     const canc = votes.length - flew;
     const agree = flew === 0 || canc === 0;
     const prev = log[today];
-    if (!prev || prev.src === "auto") {
+    if (flew === canc) {
+      // 찬반 동수 — 어느 쪽으로도 찍지 않는다. 틀린 정답을 넣으면 모델 채점이 오염된다.
+      console.log(`${today}: 사이트 의견이 ${votes.map(v => `${v.site}=${v.v}`).join(" / ")} 로 갈려 기록하지 않음`);
+    } else if (!prev || prev.src === "auto") {
       log[today] = {
-        s: flew >= canc ? "flew" : "cancelled",
+        s: flew > canc ? "flew" : "cancelled",
         src: "scrape",
-        agree,                                   // 불일치 여부를 기록에 남긴다
+        agree,
         note: votes.map(v => `${v.site}:${v.v}`).join(", ")
       };
-      console.log(`기록: ${today} → ${log[today].s}${agree ? "" : " (사이트 불일치)"}`);
+      console.log(`기록: ${today} → ${log[today].s}${agree ? "" : " (일부 불일치)"}`);
     }
   } else {
     console.log("스크래핑으로 오늘 상태를 정하지 못함");
   }
 
-  // 2) 비어 있는 과거 날짜만 기상 추정으로 채움
-  let filled = 0;
+  // 2) 비어 있는 날짜 + 옛 기준으로 찍어둔 auto 기록을 채우거나 갱신
+  let filled = 0, redone = 0;
   try {
-    const auto = await autoLabels(60);
+    const auto = await autoLabels(60, await loadS0());
     for (const [date, rec] of Object.entries(auto)) {
       if (date > today) continue;
-      if (log[date]) continue;                   // 기존 기록은 손대지 않는다
-      log[date] = rec; filled++;
+      const cur = log[date];
+      if (!cur) { log[date] = rec; filled++; continue; }
+      if (cur.src !== "auto") continue;            // 실측·수동 기록은 손대지 않는다
+      if (cur.est === EST_VERSION) continue;       // 이미 최신 기준
+      log[date] = rec; redone++;                   // 옛 기준 → 다시 계산
     }
   } catch (e) {
     console.log("자동 추정 실패: " + e.message);
@@ -155,7 +184,8 @@ const main = async () => {
     flew: Object.values(log).filter(v => v.s === "flew").length
   };
   await writeFile(OUT, JSON.stringify(store, null, 1) + "\n");
-  console.log(`자동 추정 ${filled}일 추가 · 누적 ${store.counts.total}일 (실측 ${store.counts.measured})`);
+  console.log(`자동 추정 ${filled}일 추가${redone ? ` · ${redone}일 새 기준으로 재계산` : ""}` +
+    ` · 누적 ${store.counts.total}일 (실측 ${store.counts.measured} · 뜬 날 ${store.counts.flew})`);
 };
 
 main().catch(e => { console.error(e); process.exit(1); });

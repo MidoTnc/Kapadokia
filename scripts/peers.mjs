@@ -8,7 +8,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 const OUT = new URL("../data/forecasts.json", import.meta.url);
-const UA = "Mozilla/5.0 (compatible; balloon-log/1.0)";
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const MON = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, oct:10, nov:11, dec:12 };
 
 const pad = n => String(n).padStart(2, "0");
@@ -41,7 +41,14 @@ function plain(html) {
 }
 
 async function get(url) {
-  const r = await fetch(url, { headers: { "user-agent": UA, "accept-language": "en" }, signal: AbortSignal.timeout(25000) });
+  const r = await fetch(url, {
+    headers: {
+      "user-agent": UA,
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "accept-language": "en-US,en;q=0.9"
+    },
+    signal: AbortSignal.timeout(25000)
+  });
   if (!r.ok) throw new Error("HTTP " + r.status);
   return await r.text();
 }
@@ -70,15 +77,16 @@ function parseToursCE(html) {
   return out;
 }
 
-/* epicturkeytravel: 숫자가 없고 라벨만 준다. 밴드 중앙값으로 옮긴다(근사임을 감수). */
+/* epicturkeytravel: 실제 형식은 "Fri · 28 Aug ... Aloft (~2,000 m): 4.3 kt ⚠️ Marginal Conditions".
+   날짜가 "일 월" 순서이고 라벨이 한참 뒤에 온다. 숫자가 없어 밴드 중앙값으로 근사한다. */
 function parseEpic(html) {
   const t = plain(html), out = {};
-  const re = /([a-z]{3})[a-z]*\s+(\d{1,2})\b[^%]{0,140}?(flight likely|marginal conditions|flight unlikely)/gi;
+  const re = /(\d{1,2})\s+([a-z]{3})[a-z]*\b[\s\S]{0,260}?(flight likely|marginal conditions|flight unlikely)/gi;
   const band = { "flight likely": 85, "marginal conditions": 50, "flight unlikely": 20 };
   let m;
   while ((m = re.exec(t))) {
-    const iso = toISO(m[1], +m[2]);
-    if (iso) out[iso] = band[m[3].toLowerCase()];
+    const iso = toISO(m[2], +m[1]);
+    if (iso && out[iso] == null) out[iso] = band[m[3].toLowerCase()];
   }
   return out;
 }
