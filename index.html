@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>카파도키아 벌룬 확률</title>
+<style>
+:root{
+  --bg:#0e1116; --panel:#161b23; --panel2:#1d232d; --line:#2a323e;
+  --fg:#e6edf5; --dim:#8b98a9; --dimmer:#5e6b7d;
+  --good:#3fb950; --mid:#d29922; --bad:#f85149; --accent:#58a6ff;
+  --trip:#bc8cff;
+}
+@media (prefers-color-scheme: light){
+  :root{--bg:#f6f8fa;--panel:#fff;--panel2:#f0f3f6;--line:#d8dee6;--fg:#1c2128;--dim:#5b6672;--dimmer:#8b98a9;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 80px}
+h1{font-size:20px;margin:0 0 2px;letter-spacing:-.02em}
+h2{font-size:14px;margin:0 0 12px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.sub{color:var(--dim);font-size:13px;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.big{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.bigcard{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.bigcard .lbl{font-size:12px;color:var(--dim);margin-bottom:6px}
+.bigcard .pct{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.bigcard .meta{font-size:12px;color:var(--dim);margin-top:8px}
+.bar{height:4px;border-radius:2px;background:var(--panel2);margin-top:12px;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:2px}
+.g{color:var(--good)}.m{color:var(--mid)}.b{color:var(--bad)}
+.bg-g{background:var(--good)}.bg-m{background:var(--mid)}.bg-b{background:var(--bad)}
+.strip{display:flex;gap:3px;align-items:flex-end;overflow-x:auto;padding-bottom:6px}
+.strip .d{flex:0 0 auto;width:52px;text-align:center}
+.strip .col{height:90px;display:flex;align-items:flex-end;justify-content:center}
+.strip .col>i{display:block;width:26px;border-radius:4px 4px 0 0}
+.strip .dt{font-size:10px;color:var(--dim);margin-top:5px;white-space:nowrap}
+.strip .vv{font-size:11px;font-weight:600;margin-top:2px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal .h{font-size:10px;color:var(--dimmer);text-align:center;padding:2px 0}
+.cal .c{aspect-ratio:1;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;background:var(--panel2);cursor:default;position:relative;border:1px solid transparent}
+.cal .c.on{cursor:pointer}
+.cal .c .n{font-size:9px;color:var(--dim);line-height:1}
+.cal .c .p{font-size:11px;font-weight:700;line-height:1.2}
+.cal .c.trip{border-color:var(--trip)}
+.months{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.mtitle{font-size:12px;color:var(--dim);margin-bottom:6px;font-weight:600}
+button{font:inherit;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 13px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.p{background:var(--accent);color:#08101c;border-color:var(--accent);font-weight:600}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select{font:inherit;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+label{font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:20px;border:1px solid var(--line);color:var(--dim)}
+.tag.ok{color:var(--good);border-color:var(--good)}
+.tag.no{color:var(--bad);border-color:var(--bad)}
+.tag.est{color:var(--dim)}
+.note{font-size:12px;color:var(--dim);background:var(--panel2);border-left:3px solid var(--line);padding:10px 12px;border-radius:0 8px 8px 0;margin-top:12px}
+.note.warn{border-left-color:var(--mid)}
+.log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--dim);max-height:150px;overflow:auto;white-space:pre-wrap;background:var(--panel2);padding:10px;border-radius:8px}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px}
+@keyframes s{to{transform:rotate(360deg)}}
+.hide{display:none}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--dim);flex-wrap:wrap;margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>카파도키아 벌룬 확률</h1>
+<p class="sub">괴레메 · ERA5 재분석 <span id="yrs">15</span>년 기후값 + 다중모델 앙상블 예보 · 모든 데이터는 브라우저가 직접 가져옵니다</p>
+
+<div class="big" id="big"></div>
+
+<div class="card">
+  <h2>16일 앙상블 예보</h2>
+  <div class="strip" id="strip"><span class="log">불러오는 중…</span></div>
+  <div class="legend">
+    <span><i class="bg-g"></i>70% 이상</span><span><i class="bg-m"></i>40~70%</span><span><i class="bg-b"></i>40% 미만</span>
+    <span style="color:var(--trip)">■ 여행 기간</span>
+  </div>
+  <div class="note" id="fcnote"></div>
+</div>
+
+<div class="card">
+  <h2>3개월 전망</h2>
+  <div class="months" id="months"></div>
+  <div class="note">D+16 이내는 <b>실제 예보</b>, 그 이후는 <b>과거 <span class="yrs2">15</span>년 같은 날짜의 기후 확률</b>입니다. 먼 날짜 숫자는 "예보"가 아니라 "역대 이 정도였다"는 뜻입니다.</div>
+</div>
+
+<div class="card">
+  <h2>운항 기록 <span style="font-weight:400;text-transform:none;letter-spacing:0">— 매일 쌓입니다</span></h2>
+  <div class="row" style="margin-bottom:12px;align-items:center">
+    <button id="btnScrape">지금 사이트에서 읽어오기</button>
+    <button id="btnBackfill">빈 날짜 기상으로 채우기</button>
+    <button id="btnExport">JSON 내보내기</button>
+    <button id="btnImport">JSON 가져오기</button>
+    <input type="file" id="fileImport" accept=".json" class="hide">
+    <span class="log" id="logStat" style="max-height:none;background:none;padding:0"></span>
+  </div>
+  <div id="logcal"></div>
+  <div class="legend">
+    <span><i class="bg-g"></i>운항</span><span><i class="bg-b"></i>취소</span>
+    <span><i style="background:var(--panel2);border:1px solid var(--line)"></i>기록 없음</span>
+    <span>· 칸을 클릭하면 <b>운항 → 취소 → 기록없음</b> 순으로 직접 수정</span>
+  </div>
+  <div class="note warn" id="scrapenote">브라우저 보안(CORS) 때문에 다른 사이트 HTML을 직접 못 읽습니다. 무료 공개 프록시를 경유해 시도하며, 막히면 아래 기상 자동추정으로 대체됩니다. 확실한 자동 수집을 원하면 GitHub Pages 배포본을 쓰세요.</div>
+</div>
+
+<div class="card">
+  <h2>계절 형태 대조 <span style="font-weight:400;text-transform:none;letter-spacing:0">— 모델 vs 실측 월별 운항률</span></h2>
+  <div class="scroll" id="monthlybox"><span class="log">계산 대기 중…</span></div>
+</div>
+
+<div class="card">
+  <h2>모델 검증 <span style="font-weight:400;text-transform:none;letter-spacing:0">— 실측 라벨로 채점</span></h2>
+  <div id="fitbox"><span class="log">계산 대기 중…</span></div>
+</div>
+
+<div class="card">
+  <h2>설정 · 진단</h2>
+  <div class="row" style="align-items:flex-end;margin-bottom:14px">
+    <label>기후 산출 연수<input type="number" id="cfgYears" min="5" max="30" step="1" style="width:80px"></label>
+    <label>연간 운항일 기준<input type="number" id="cfgAnchor" min="120" max="330" step="5" style="width:90px"></label>
+    <label>여행 시작<input type="date" id="cfgTripS" style="width:150px"></label>
+    <label>여행 종료<input type="date" id="cfgTripE" style="width:150px"></label>
+    <button class="p" id="btnRecalc">다시 계산</button>
+    <button id="btnClearCache">캐시 비우기</button>
+  </div>
+  <div class="scroll"><table id="diag"><thead><tr><th>단계</th><th>상태</th><th>비고</th></tr></thead><tbody></tbody></table></div>
+  <div class="log" id="conlog" style="margin-top:12px"></div>
+  <div class="note">
+    <b>이 앱이 하지 않는 것:</b> 날씨만으로는 SHGM 운항위원회 재량·슬롯 제한·사고 후 중단·업체 사정 취소를 예측할 수 없습니다.
+    실제로 풍속 4km/h·시정 38km인 날에도 취소된 사례가 있습니다. 그래서 확률 상한을 95%로 자릅니다.
+    표시 숫자는 <b>기상 조건 기반 추정</b>이지 공식 발표가 아닙니다.
+  </div>
+</div>
+
+</div>
+
+<script>
+"use strict";
+/* ────────────────────────────────────────────────────────────
+   설정
+   ──────────────────────────────────────────────────────────── */
+const DEF = {
+  lat: 38.6431, lon: 34.8289, tz: "Europe/Istanbul",
+  years: 15,
+  anchorDays: 223,          // 2025년 실측 운항일수 (balloonscanner 223/365, SHM 보고서 225와 정합)
+  tripStart: "2026-09-16",
+  tripEnd:   "2026-09-20",
+  capMax: 0.95,             // 비기상 취소 여지
+  winPre: 45, winPost: 120  // 일출 -45분 ~ +2시간 (이륙~착륙 전 구간)
+};
+const LSK = { cfg:"cb.cfg", clim:"cb.clim", log:"cb.log", seed:"cb.seed2" };
+
+/* ────────────────────────────────────────────────────────────
+   실측 시드: balloonstatus.com 공개 기록 (2026-07-05 ~ 08-26)
+   이 구간은 공식 판정이 기록된 날들이다. 7/1~4·7/14~20·6월말은
+   그쪽도 기상 추정치라 학습에서 제외하려고 src:"auto"로 넣는다.
+   8/27은 사이트 내부에서도 표기가 엇갈려 아예 넣지 않는다.
+   ──────────────────────────────────────────────────────────── */
+const SEED = (() => {
+  const o = {};
+  const put = (mm, days, s, src) => days.forEach(d =>
+    o[`2026-${mm}-${String(d).padStart(2,"0")}`] = { s, src, note:"balloonstatus 기록" });
+  // 공식 판정 구간
+  put("07", [5,6,10,21,25,26,29,30], "cancelled", "official");
+  put("07", [7,8,9,11,12,13,22,23,24,27,28,31], "flew", "official");
+  put("08", [10,11,12,13,14,15,24,25], "cancelled", "official");
+  put("08", [1,2,3,4,5,6,7,8,9,16,17,18,19,20,21,22,23,26], "flew", "official");
+  // 사이트가 기상으로 추정한 구간 (학습에서 제외)
+  put("06", [28,29,30], "flew", "auto");
+  put("07", [1,2,3,4,14,15,16,17,18,19,20], "flew", "auto");
+  return o;
+})();
+const cfg = Object.assign({}, DEF, load(LSK.cfg, {}));
+const flightLog = load(LSK.log, {});   // { "2026-08-27": {s:"flew"|"cancelled", src:"official|scrape|auto|manual", note:""} }
+
+function load(k, d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function save(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ con("저장 실패(localStorage 차단?): "+e.message); return false; } }
+
+const $ = s => document.querySelector(s);
+const conEl = $("#conlog");
+function con(m){ conEl.textContent += (conEl.textContent?"\n":"") + m; conEl.scrollTop = 1e6; }
+const diagRows = [];
+function diag(step, ok, note){ diagRows.push({step, ok, note}); renderDiag(); return diagRows.length-1; }
+function diagSet(i, ok, note){ if(diagRows[i]){ diagRows[i].ok=ok; diagRows[i].note=note; renderDiag(); } }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ── 날짜 유틸 ── */
+const D = {
+  key: d => { const z=new Date(d); return z.getFullYear()+"-"+String(z.getMonth()+1).padStart(2,"0")+"-"+String(z.getDate()).padStart(2,"0"); },
+  add: (k,n) => { const d=new Date(k+"T12:00:00"); d.setDate(d.getDate()+n); return D.key(d); },
+  doy: k => { const d=new Date(k+"T12:00:00"); return Math.floor((d - new Date(d.getFullYear(),0,0))/864e5); },
+  label: k => { const d=new Date(k+"T12:00:00"); return (d.getMonth()+1)+"/"+d.getDate(); },
+  dow: k => new Date(k+"T12:00:00").getDay()
+};
+const TODAY = D.key(new Date(new Date().toLocaleString("en-US",{timeZone:cfg.tz})));
+
+/* ── fetch 유틸 ── */
+async function getJSON(url, ms=90000){
+  const c = new AbortController();
+  const t = setTimeout(()=>c.abort(), ms);
+  try{
+    const r = await fetch(url, {signal:c.signal});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+/* ────────────────────────────────────────────────────────────
+   기상 → 이륙 가능성 점수
+   ──────────────────────────────────────────────────────────── */
+/* 변수 세트 — 넓은 것부터 시도하고 API가 거부하면 좁혀서 재시도한다.
+   925hPa 는 쓰지 않는다: ISA 기준 약 762m 인데 괴레메 지표가 1000~1100m 라 "지표 아래"다.
+   실제 비행 고도대는 지표~900m AGL, 즉 900~825hPa 이고 그 중심이 850hPa(약 400m AGL). */
+const VARSETS = [
+  ["wind_speed_10m","wind_gusts_10m","wind_direction_10m","precipitation","cloud_cover","cloud_cover_low",
+   "visibility","temperature_2m","dew_point_2m",
+   "wind_speed_900hPa","wind_speed_850hPa","wind_speed_800hPa","wind_direction_850hPa","temperature_850hPa"],
+  ["wind_speed_10m","wind_gusts_10m","wind_direction_10m","precipitation","cloud_cover",
+   "temperature_2m","dew_point_2m","wind_speed_850hPa","wind_direction_850hPa","temperature_850hPa"],
+  ["wind_speed_10m","wind_gusts_10m","precipitation","cloud_cover","temperature_2m","dew_point_2m"],
+  ["wind_speed_10m","wind_gusts_10m","precipitation","cloud_cover"]
+];
+
+/* 실측 월별 운항률 — 모델 기후값이 현실과 맞는지 대조하는 기준.
+   2025: balloonscanner (출처 미공개, 참고용) / 2026: epicturkeytravel (SHGM 결정 기록, 138일) */
+const MEASURED = {
+  2025: {1:.58,2:.25,3:.61,4:.63,5:.74,6:.83,7:.74,8:.83,9:.66,10:.58,11:.53,12:.29},
+  2026: {4:.68,5:.55,6:.83,7:.77,8:.70}
+};
+
+/* 일출 시각(현지) 기준 창에서 특징 추출.
+   규정(SHT-OPS-B 13조)은 "이륙 시점의 지상풍 10kt" 뿐 아니라
+   "예상 착륙 시각·장소의 예상 풍속"도 같은 한도로 구속한다 → 창 전체의 최댓값을 본다. */
+const ANG = (a,b) => { let d = Math.abs(a-b)%360; return d>180 ? 360-d : d; };
+
+function features(hourly, idxByDate, sunriseByDate, date, suffix){
+  const rows = idxByDate[date]; if(!rows || !rows.length) return null;
+  const sr = sunriseByDate[date]; if(!sr) return null;
+  const srMin = parseInt(sr.slice(11,13),10)*60 + parseInt(sr.slice(14,16),10);
+  const lo = srMin - cfg.winPre, hi = srMin + cfg.winPost;
+  const g = n => hourly[n + (suffix||"")] || hourly[n] || null;
+  const A = {
+    w10:g("wind_speed_10m"), gu:g("wind_gusts_10m"), d10:g("wind_direction_10m"),
+    pr:g("precipitation"), cc:g("cloud_cover"), ccl:g("cloud_cover_low"), vi:g("visibility"),
+    t2:g("temperature_2m"), td:g("dew_point_2m"),
+    w900:g("wind_speed_900hPa"), w850:g("wind_speed_850hPa"), w800:g("wind_speed_800hPa"),
+    d850:g("wind_direction_850hPa"), t850:g("temperature_850hPa")
+  };
+  const mx = (arr,i,cur) => (arr && arr[i]!=null) ? Math.max(cur, arr[i]) : cur;
+  let w10=-1, gu=-1, wal=-1, pr=0, vi=null, ccS=0, cclS=0, n=0;
+  let dewDep=null, inv=null, d10s=null, d850s=null, w10s=0;
+  for(const r of rows){
+    if(r.min < lo-60 || r.min > hi) continue;   // 1시간 해상도 여유
+    const i = r.i; n++;
+    w10 = mx(A.w10,i,w10); gu = mx(A.gu,i,gu);
+    wal = mx(A.w900,i,wal); wal = mx(A.w850,i,wal); wal = mx(A.w800,i,wal);
+    if(A.pr && A.pr[i]!=null) pr += A.pr[i];
+    if(A.vi && A.vi[i]!=null) vi = vi==null ? A.vi[i] : Math.min(vi, A.vi[i]);
+    if(A.cc && A.cc[i]!=null) ccS += A.cc[i];
+    if(A.ccl && A.ccl[i]!=null) cclS += A.ccl[i];
+    if(A.t2 && A.td && A.t2[i]!=null && A.td[i]!=null){
+      const dd = A.t2[i]-A.td[i]; dewDep = dewDep==null ? dd : Math.min(dewDep, dd);
+    }
+    if(A.t850 && A.t2 && A.t850[i]!=null && A.t2[i]!=null){
+      const iv = A.t850[i]-A.t2[i]; inv = inv==null ? iv : Math.max(inv, iv);
+    }
+    if(A.d10 && A.d10[i]!=null){ d10s = A.d10[i]; }
+    if(A.d850 && A.d850[i]!=null){ d850s = A.d850[i]; }
+    if(A.w10 && A.w10[i]!=null){ w10s = A.w10[i]; }
+  }
+  if(!n || w10 < 0) return null;
+  if(gu < 0) gu = w10*1.5;
+  // 저층 제트 지수: 상층이 지상보다 얼마나 빠른가.
+  // 맑고 잔잔한 새벽에 역전층 위로 빠른 바람이 얹히는 "겉보기 완벽한 아침"의 함정을 잡는다.
+  const llj = wal >= 0 ? Math.max(0, wal - w10) : null;
+  return {
+    w10, gu, wal: wal<0?null:wal, llj,
+    shearDir: (d10s!=null && d850s!=null) ? ANG(d10s, d850s) : null,
+    dewDep, inv, pr, vi, cc: n?ccS/n:null, ccl: (A.ccl && n)?cclS/n:null, w10s
+  };
+}
+
+/* 위험도 — 초기값은 규정과 항공 문헌에 맞춰 잡되, 라벨이 모이면 fitLogistic 이 다시 배운다.
+   근거: 지상 10kt = SHT-OPS-B 상용 한도 / 시정 2000m = 같은 조항 (블로그의 "5km"는 오전)
+        상층 15~18kt = FAA 로터 경고 15kt 기준 / T-Td < 2.2C = FAA 안개 규칙 */
+function severity(f){
+  if(!f) return null;
+  const over = (x,t,sc) => x==null ? 0 : Math.max(0, (x-t)/sc);
+  let s = 0;
+  s += over(f.w10, 10, 2.5) * 2.0;          // 규정 한도 10kt
+  s += over(f.gu,  15, 4);
+  s += over(f.wal, 16, 5) * 1.5;            // 비행 고도대(900~800hPa)
+  s += over(f.llj,  8, 4) * 1.2;            // 저층 제트
+  if(f.pr > 0.2) s += 3.5;                  // 강수 = 사실상 취소
+  if(f.vi != null){
+    if(f.vi < 2000) s += 3.5;               // 규정 미달
+    else if(f.vi < 5000) s += 1.0;
+  }
+  if(f.dewDep != null && f.dewDep < 2.2 && f.w10s < 7) s += 1.5;   // 복사안개 조건
+  if(f.ccl != null && f.ccl > 70) s += 0.6;                        // 낮은 구름
+  return s;
+}
+
+/* ── 실측 라벨로 계수를 다시 학습 (로지스틱 회귀 + L2) ── */
+const FEATN = ["지상풍","돌풍","상층풍","저층제트","이슬점차","역전층","강수","저시정"];
+function featVec(f){
+  if(!f) return null;
+  return [
+    f.w10,
+    f.gu,
+    f.wal  != null ? f.wal  : f.w10*1.8,
+    f.llj  != null ? f.llj  : 0,
+    f.dewDep != null ? f.dewDep : 8,
+    f.inv  != null ? f.inv  : 0,
+    f.pr > 0.2 ? 1 : 0,
+    (f.vi != null && f.vi < 5000) ? 1 : 0
+  ];
+}
+
+/* ── 실측 라벨로 계수를 다시 학습 (로지스틱 회귀 + L2) ── */
+function trainLogistic(X, y, l2=1.0, iters=4000, lr=0.12){
+  const n = X.length, d = X[0].length;
+  const mu = Array(d).fill(0), sd = Array(d).fill(0);
+  for(let j=0;j<d;j++){
+    for(let i=0;i<n;i++) mu[j]+=X[i][j]; mu[j]/=n;
+    for(let i=0;i<n;i++) sd[j]+=(X[i][j]-mu[j])**2;
+    sd[j]=Math.sqrt(sd[j]/n)||1;
+  }
+  const Z = X.map(r=>r.map((v,j)=>(v-mu[j])/sd[j]));
+  let w = Array(d).fill(0), b = 0;
+  for(let it=0; it<iters; it++){
+    const gw = Array(d).fill(0); let gb = 0;
+    for(let i=0;i<n;i++){
+      let z=b; for(let j=0;j<d;j++) z+=w[j]*Z[i][j];
+      const p = 1/(1+Math.exp(-z)), e = p - y[i];
+      for(let j=0;j<d;j++) gw[j]+=e*Z[i][j];
+      gb += e;
+    }
+    for(let j=0;j<d;j++) w[j] -= lr*(gw[j]/n + l2*w[j]/n);
+    b -= lr*(gb/n);
+  }
+  return { w, b, mu, sd,
+    predict(x){ let z=this.b; for(let j=0;j<this.w.length;j++) z+=this.w[j]*((x[j]-this.mu[j])/this.sd[j]); return 1/(1+Math.exp(-z)); } };
+}
+function crossVal(X, y, k=5){
+  const idx = X.map((_,i)=>i);
+  // 고정 셔플(재현 가능)
+  for(let i=idx.length-1;i>0;i--){ const j=(i*2654435761)%(i+1); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  let correct=0, tot=0, cCanc=0, nCanc=0, bs=0;
+  for(let f=0; f<k; f++){
+    const te = idx.filter((_,i)=>i%k===f), tr = idx.filter((_,i)=>i%k!==f);
+    if(tr.length<10 || !te.length) continue;
+    const ys = tr.map(i=>y[i]);
+    if(ys.every(v=>v===ys[0])) continue;
+    const m = trainLogistic(tr.map(i=>X[i]), ys);
+    for(const i of te){
+      const p = m.predict(X[i]), hit = (p>=0.5?1:0)===y[i];
+      tot++; if(hit) correct++; bs += (p-y[i])*(p-y[i]);
+      if(y[i]===0){ nCanc++; if(hit) cCanc++; }   // 취소일을 잡아내는지가 핵심
+    }
+  }
+  return { acc: tot?correct/tot:null, recallCancel: nCanc?cCanc/nCanc:null, brier: tot?bs/tot:null, n: tot };
+}
+const K = 1.6;
+function prob(s, s0){ if(s==null) return null; return 1/(1+Math.exp(K*(s - s0))); }
+
+// 연평균 운항일수 앵커에 맞춰 s0를 이분법으로 캘리브레이션
+function calibrate(sevs, target){
+  let lo=0, hi=12;
+  for(let it=0; it<60; it++){
+    const mid=(lo+hi)/2;
+    let sum=0; for(const s of sevs) sum += prob(s, mid);
+    (sum/sevs.length < target) ? lo=mid : hi=mid;
+  }
+  return (lo+hi)/2;
+}
+
+/* ── Open-Meteo 응답 → 날짜별 인덱스 ── */
+function indexHourly(times){
+  const by = {};
+  for(let i=0;i<times.length;i++){
+    const t = times[i], d = t.slice(0,10);
+    (by[d] = by[d] || []).push({ i, min: parseInt(t.slice(11,13),10)*60 + parseInt(t.slice(14,16),10) });
+  }
+  return by;
+}
+function sunriseMap(daily){
+  const m={}; if(!daily||!daily.time) return m;
+  const sr = daily.sunrise || daily["sunrise"];
+  for(let i=0;i<daily.time.length;i++) if(sr && sr[i]) m[daily.time[i]] = sr[i];
+  return m;
+}
+const OM = (base,p) => base + "?" + Object.entries(p).map(([k,v])=>k+"="+encodeURIComponent(v)).join("&");
+const COMMON = { latitude:cfg.lat, longitude:cfg.lon, timezone:cfg.tz, wind_speed_unit:"kn" };
+
+/* ────────────────────────────────────────────────────────────
+   1) 기후값 (ERA5)
+   ──────────────────────────────────────────────────────────── */
+async function buildClimatology(force){
+  const cacheKey = LSK.clim;
+  const cached = load(cacheKey, null);
+  if(!force && cached && cached.years===cfg.years && cached.anchor===cfg.anchorDays && cached.v===4){
+    diag("기후값(ERA5)", true, "캐시 사용 · "+cached.n+"일 표본");
+    return cached;
+  }
+  const endY = new Date().getFullYear()-1;
+  const startY = endY - cfg.years + 1;
+  const chunks = [];
+  for(let y=startY; y<=endY; y+=3) chunks.push([y, Math.min(y+2, endY)]);
+
+  const sevs = [], byDoy = {}, byMonth = {};
+  let varTier = 0, done = 0;
+  const dRow = diag("기후값(ERA5)", null, chunks.length+"개 구간 요청");
+
+  for(const [a,b] of chunks){
+    let data = null;
+    // 이미 성공한 변수 세트가 있으면 그것부터, 없으면 넓은 것부터
+    const order = VARSETS.slice(varTier);
+    for(let k=0; k<order.length; k++){
+      const url = OM("https://archive-api.open-meteo.com/v1/archive", Object.assign({}, COMMON, {
+        start_date: a+"-01-01", end_date: b+"-12-31",
+        hourly: order[k].join(","), daily: "sunrise"
+      }));
+      try { data = await getJSON(url); varTier += k; break; }
+      catch(e){ con(`ERA5 ${a}-${b} 변수세트${varTier+k} 실패: ${e.message}`); }
+    }
+    if(!data){ continue; }
+    const idx = indexHourly(data.hourly.time), sun = sunriseMap(data.daily);
+    for(const date of Object.keys(idx)){
+      const s = severity(features(data.hourly, idx, sun, date, ""));
+      if(s==null) continue;
+      sevs.push(s);
+      const dy = D.doy(date);
+      (byDoy[dy] = byDoy[dy] || []).push(s);
+      const mo = +date.slice(5,7);
+      (byMonth[mo] = byMonth[mo] || []).push(s);
+    }
+    done++;
+    diagSet(dRow, null, `${done}/${chunks.length} 구간 · ${sevs.length}일 누적`);
+  }
+  if(!sevs.length){ diagSet(dRow, false, "데이터 없음 — 네트워크 차단 또는 API 응답 오류"); return null; }
+
+  const s0 = calibrate(sevs, cfg.anchorDays/365);
+  // 일자별 ±7일 창 평균
+  const clim = {};
+  for(let dy=1; dy<=366; dy++){
+    let acc=0, n=0;
+    for(let k=-7;k<=7;k++){
+      const d = ((dy+k-1)%366+366)%366 + 1;
+      const arr = byDoy[d]; if(!arr) continue;
+      for(const s of arr){ acc += prob(s, s0); n++; }
+    }
+    clim[dy] = n ? acc/n : null;
+  }
+  // 월별 모델 평균 — 실측 월별 운항률과 대조해 계절 형태가 맞는지 본다
+  const monthly = {};
+  for(let m=1;m<=12;m++){
+    const arr = byMonth[m];
+    monthly[m] = arr && arr.length ? arr.reduce((a,x)=>a+prob(x,s0),0)/arr.length : null;
+  }
+
+  const out = { v:4, years:cfg.years, anchor:cfg.anchorDays, s0, clim, monthly, n:sevs.length, tier:varTier, built:new Date().toISOString() };
+  save(cacheKey, out);
+  diagSet(dRow, true, `${sevs.length}일 표본 · s0=${s0.toFixed(2)} · 변수세트 ${varTier} (${VARSETS[varTier].length}종)`);
+  return out;
+}
+function renderDiag(){
+  $("#diag tbody").innerHTML = diagRows.map(r =>
+    `<tr><td>${esc(r.step)}</td><td>${r.ok===null?'<span class="spin"></span>':r.ok?'<span class="tag ok">성공</span>':'<span class="tag no">실패</span>'}</td><td>${esc(r.note||"")}</td></tr>`
+  ).join("");
+}
+
+/* ────────────────────────────────────────────────────────────
+   2) 다중모델 앙상블 예보 + 과거 92일 실황
+   ──────────────────────────────────────────────────────────── */
+const MODELS = [
+  ["ecmwf_ifs025","ECMWF"], ["gfs_seamless","GFS"], ["icon_seamless","ICON"],
+  ["metno_seamless","MET Norway"], ["gem_seamless","GEM"], ["ukmo_seamless","UK Met"]
+];
+async function buildForecast(s0){
+  // 일출은 모델 무관 단일 호출
+  let sun = {};
+  try{
+    const d = await getJSON(OM("https://api.open-meteo.com/v1/forecast", Object.assign({}, COMMON, {
+      daily:"sunrise", past_days:92, forecast_days:16 })));
+    sun = sunriseMap(d.daily);
+    diag("일출 시각", true, Object.keys(sun).length+"일");
+  }catch(e){ diag("일출 시각", false, e.message); }
+
+  // 실황(과거 92일 + 예보) — 모델 미지정 = 최적 조합
+  let analysis = null;
+  for(const vs of VARSETS){
+    try{
+      analysis = await getJSON(OM("https://api.open-meteo.com/v1/forecast", Object.assign({}, COMMON, {
+        hourly: vs.join(","), past_days:92, forecast_days:16 })));
+      break;
+    }catch(e){ con("실황 변수세트 실패: "+e.message); }
+  }
+  if(!analysis) diag("실황/기본예보", false, "모든 변수 조합 실패");
+  const pAnalysis = {}, featByDate = {};
+  if(analysis){
+    const idx = indexHourly(analysis.hourly.time);
+    for(const date of Object.keys(idx)){
+      const f = features(analysis.hourly, idx, sun, date, "");
+      if(!f) continue;
+      featByDate[date] = f;
+      const p = prob(severity(f), s0);
+      if(p!=null) pAnalysis[date] = p;
+    }
+    diag("실황/기본예보", true, Object.keys(pAnalysis).length+"일 (과거 92일 포함)");
+  }
+
+  // 모델별 앙상블 — 상층풍을 우선 요청하고, 거부되면 지상 변수만으로 재시도
+  const perModel = {}, featPerModel = {}, okModels = [];
+  for(const [id,name] of MODELS){
+    let d = null, used = null;
+    for(const vars of VARSETS){
+      try{
+        d = await getJSON(OM("https://api.open-meteo.com/v1/forecast", Object.assign({}, COMMON, {
+          hourly: vars.join(","), forecast_days:16, models:id })));
+        used = vars; break;
+      }catch(e){ /* 다음 조합 */ }
+    }
+    if(!d){ con(`모델 ${name}: 응답 없음`); continue; }
+    const idx = indexHourly(d.hourly.time);
+    const suffix = d.hourly["wind_speed_10m"] ? "" : "_"+id;
+    const m = {}, fm = {};
+    for(const date of Object.keys(idx)){
+      const f = features(d.hourly, idx, sun, date, suffix);
+      if(!f) continue;
+      fm[date] = f;
+      const p = prob(severity(f), s0);
+      if(p!=null) m[date] = p;
+    }
+    if(Object.keys(m).length){ perModel[name]=m; featPerModel[name]=fm; okModels.push(name); }
+  }
+  diag("다중모델 앙상블", okModels.length>0, okModels.length ? okModels.join(", ") : "전부 실패 — 기본예보로 대체");
+  return { sun, pAnalysis, featByDate, perModel, featPerModel, okModels };
+}
+
+
+/* ── 앙상블 API: 결정론 모델 6개를 평균내는 것보다 정직한 확률 ──
+   ECMWF IFS 51멤버 / GFS 31 / ICON 40. "51개 중 몇 개가 뜰 수 있다고 보나"가 곧 확률이다.
+   응답 컬럼은 wind_speed_10m_member01 식이라 접미사를 훑어 멤버별로 재조립한다. */
+async function buildEnsemble(s0){
+  const CAND = [["ecmwf_ifs025","ECMWF 51멤버"], ["gfs025","GFS 31멤버"], ["icon_global","ICON 40멤버"]];
+  for(const [id, label] of CAND){
+    for(const vs of VARSETS){
+      let d = null;
+      try{
+        d = await getJSON(OM("https://ensemble-api.open-meteo.com/v1/ensemble", Object.assign({}, COMMON, {
+          hourly: vs.join(","), forecast_days:16, models:id })), 120000);
+      }catch(e){ continue; }
+      if(!d || !d.hourly) continue;
+      // 멤버 번호 수집
+      const mem = new Set();
+      for(const k of Object.keys(d.hourly)){
+        const m = k.match(/_member(\d+)$/); if(m) mem.add(m[1]);
+      }
+      const suffixes = mem.size ? [...mem].sort().map(x=>"_member"+x) : [""];
+      const idx = indexHourly(d.hourly.time);
+      let sun = {};
+      if(d.daily) sun = sunriseMap(d.daily);
+      if(!Object.keys(sun).length && STATE.F && STATE.F.sun) sun = STATE.F.sun;
+      const byDate = {};
+      for(const date of Object.keys(idx)){
+        const ps = [];
+        for(const sfx of suffixes){
+          const f = features(d.hourly, idx, sun, date, sfx);
+          const p = pFromFeat(f, s0);
+          if(p!=null) ps.push(p);
+        }
+        if(ps.length) byDate[date] = ps;
+      }
+      if(Object.keys(byDate).length){
+        diag("앙상블 확률", true, `${label} · 멤버 ${suffixes.length}개`);
+        return { id, label, members:suffixes.length, byDate };
+      }
+    }
+  }
+  diag("앙상블 확률", false, "사용 불가 — 결정론 모델 평균으로 대체");
+  return null;
+}
+
+/* ────────────────────────────────────────────────────────────
+   3) 결합: 리드타임에 따라 예보 ↔ 기후값 가중
+   ──────────────────────────────────────────────────────────── */
+// 학습된 모델이 검증을 통과했으면 그걸 쓰고, 아니면 규칙 기반으로 되돌아간다
+function pFromFeat(f, s0){
+  if(!f) return null;
+  if(STATE.fit && STATE.fit.use) return STATE.fit.model.predict(featVec(f));
+  return prob(severity(f), s0);
+}
+function combine(date, F, clim){
+  const dy = D.doy(date);
+  const pc = clim && clim.clim[dy]!=null ? clim.clim[dy] : null;
+  const lead = Math.round((new Date(date+"T12:00:00") - new Date(TODAY+"T12:00:00"))/864e5);
+  const s0 = clim ? clim.s0 : 3.0;
+  const fitted = !!(STATE.fit && STATE.fit.use);
+
+  // 앙상블 멤버가 있으면 그것이 1순위 (멤버 분포 = 확률)
+  const ens = STATE.ens && STATE.ens.byDate[date];
+  const ms = [];
+  if(ens && ens.length){
+    for(const v of ens) ms.push(v);
+  } else {
+    for(const name of F.okModels){
+      const v = fitted
+        ? pFromFeat(F.featPerModel[name] && F.featPerModel[name][date], s0)
+        : F.perModel[name][date];
+      if(v!=null) ms.push(v);
+    }
+  }
+  let pf = ms.length ? ms.reduce((a,b)=>a+b,0)/ms.length
+         : (fitted ? pFromFeat(F.featByDate[date], s0)
+                   : (F.pAnalysis[date]!=null ? F.pAnalysis[date] : null));
+  const spread = ms.length>1 ? Math.max(...ms)-Math.min(...ms) : null;
+
+  if(pf==null) return { p: pc, kind:"clim", pc, pf:null, spread:null, lead, n:ms.length };
+  // 신뢰 가중: D+0~2 예보 100%, 이후 지수 감쇠
+  const w = lead<=2 ? 1 : Math.max(0.35, Math.exp(-(lead-2)/9));
+  const p = pc==null ? pf : w*pf + (1-w)*pc;
+  return { p, kind: lead<=2?"now":"fcst", pc, pf, spread, lead, n:ms.length, w };
+}
+const cls = p => p==null?"":(p>=0.7?"g":p>=0.4?"m":"b");
+const bgc = p => p==null?"":(p>=0.7?"bg-g":p>=0.4?"bg-m":"bg-b");
+const pctS = p => p==null?"—":Math.round(p*100)+"%";
+const capP = p => p==null?null:Math.min(p, cfg.capMax);
+const inTrip = d => cfg.tripStart && cfg.tripEnd && d>=cfg.tripStart && d<=cfg.tripEnd;
+
+/* ────────────────────────────────────────────────────────────
+   렌더링
+   ──────────────────────────────────────────────────────────── */
+let STATE = { clim:null, F:null };
+
+function renderBig(){
+  const { clim, F } = STATE;
+  const items = [
+    { k: TODAY, lbl:"오늘" },
+    { k: D.add(TODAY,1), lbl:"내일" },
+    { k: D.add(TODAY,2), lbl:"모레" }
+  ];
+  if(cfg.tripStart && cfg.tripStart >= TODAY) items.push({ k:cfg.tripStart, lbl:"여행 첫날", trip:true });
+
+  $("#big").innerHTML = items.map(it=>{
+    const c = F ? combine(it.k, F, clim) : null;
+    const p = capP(c && c.p);
+    const rec = flightLog[it.k];
+    let meta = "";
+    if(c){
+      if(c.kind==="clim") meta = `역대 ${clim?clim.years:"?"}년 기후 확률`;
+      else meta = `모델 ${c.n||1}종${c.spread!=null?` · 편차 ${Math.round(c.spread*100)}%p`:""} · D+${c.lead}`;
+    }
+    if(rec) meta = (rec.s==="flew"?"기록: 운항":"기록: 취소") + ` (${rec.src})` + (meta?" · "+meta:"");
+    return `<div class="bigcard" style="${it.trip?"border-color:var(--trip)":""}">
+      <div class="lbl">${esc(it.lbl)} · ${D.label(it.k)}</div>
+      <div class="pct ${cls(p)}">${pctS(p)}</div>
+      <div class="bar"><i class="${bgc(p)}" style="width:${p?Math.round(p*100):0}%"></i></div>
+      <div class="meta">${esc(meta)}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderStrip(){
+  const { clim, F } = STATE;
+  if(!F){ $("#strip").innerHTML = '<span class="log">예보 없음</span>'; return; }
+  let html = "";
+  for(let i=0;i<16;i++){
+    const k = D.add(TODAY,i);
+    const c = combine(k, F, clim);
+    const p = capP(c.p);
+    const h = p==null?2:Math.max(3, Math.round(p*90));
+    html += `<div class="d"><div class="col"><i class="${bgc(p)}" style="height:${h}px;${inTrip(k)?"outline:2px solid var(--trip);outline-offset:1px":""}"></i></div>
+      <div class="vv ${cls(p)}">${pctS(p)}</div><div class="dt">${D.label(k)}</div></div>`;
+  }
+  $("#strip").innerHTML = html;
+  if(STATE.ens){
+    $("#fcnote").innerHTML = `<b>${esc(STATE.ens.label)}</b> 사용 중 — 멤버 ${STATE.ens.members}개 각각을 판정해 그중 "뜰 수 있다"는 비율을 확률로 씁니다.
+      결정론 모델 여러 개를 평균내는 것보다 확률의 의미가 분명합니다.`;
+    return;
+  }
+  const n = F.okModels.length;
+  $("#fcnote").innerHTML = n
+    ? `앙상블 참여 모델 <b>${n}종</b>: ${esc(F.okModels.join(", "))}. 모델 간 편차가 크면 그만큼 불확실하다는 뜻입니다.`
+    : `개별 모델 호출이 모두 실패해 기본 예보 하나만 쓰고 있습니다. 앙상블 편차는 표시되지 않습니다.`;
+}
+
+function monthGrid(year, month, cellFn){
+  const first = new Date(year, month, 1), last = new Date(year, month+1, 0);
+  let html = '<div class="cal">' + ["일","월","화","수","목","금","토"].map(d=>`<div class="h">${d}</div>`).join("");
+  for(let i=0;i<first.getDay();i++) html += '<div></div>';
+  for(let d=1; d<=last.getDate(); d++){
+    const k = year+"-"+String(month+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    html += cellFn(k, d);
+  }
+  return html + "</div>";
+}
+
+function renderMonths(){
+  const { clim, F } = STATE;
+  const base = new Date(TODAY+"T12:00:00");
+  let html = "";
+  for(let m=0;m<3;m++){
+    const dt = new Date(base.getFullYear(), base.getMonth()+m, 1);
+    html += `<div><div class="mtitle">${dt.getFullYear()}년 ${dt.getMonth()+1}월</div>` +
+      monthGrid(dt.getFullYear(), dt.getMonth(), (k,d)=>{
+        if(k < TODAY) return `<div class="c" style="opacity:.25"><span class="n">${d}</span></div>`;
+        const c = F ? combine(k, F, clim) : (clim ? {p:clim.clim[D.doy(k)], kind:"clim"} : null);
+        const p = capP(c && c.p);
+        return `<div class="c ${inTrip(k)?"trip":""}" title="${k}${c&&c.kind==="clim"?" · 기후 확률":" · 예보 반영"}">
+          <span class="n">${d}</span><span class="p ${cls(p)}">${p==null?"—":Math.round(p*100)}</span></div>`;
+      }) + "</div>";
+  }
+  $("#months").innerHTML = html;
+}
+
+function renderLog(){
+  const base = new Date(TODAY+"T12:00:00");
+  let html = "";
+  for(let m=2;m>=0;m--){
+    const dt = new Date(base.getFullYear(), base.getMonth()-m, 1);
+    html += `<div style="margin-bottom:14px"><div class="mtitle">${dt.getFullYear()}년 ${dt.getMonth()+1}월</div>` +
+      monthGrid(dt.getFullYear(), dt.getMonth(), (k,d)=>{
+        if(k > TODAY) return `<div class="c" style="opacity:.2"><span class="n">${d}</span></div>`;
+        const r = flightLog[k];
+        const bg = !r ? "" : (r.s==="flew" ? "background:var(--good);color:#08130a" : "background:var(--bad);color:#160607");
+        const mark = !r ? "" : (r.s==="flew" ? "O" : "X");
+        const dim = r && (r.src==="auto") ? "opacity:.55" : "";
+        return `<div class="c on" data-k="${k}" style="${bg};${dim}" title="${k}${r?" · "+r.s+" ("+r.src+")":" · 기록 없음"}">
+          <span class="n" style="${r?"color:inherit;opacity:.7":""}">${d}</span><span class="p">${mark}</span></div>`;
+      }) + "</div>";
+  }
+  $("#logcal").innerHTML = html;
+  $("#logcal").querySelectorAll(".c.on").forEach(el=>{
+    el.onclick = () => {
+      const k = el.dataset.k, r = flightLog[k];
+      if(!r) flightLog[k] = {s:"flew", src:"manual"};
+      else if(r.s==="flew") flightLog[k] = {s:"cancelled", src:"manual"};
+      else delete flightLog[k];
+      save(LSK.log, flightLog); renderLog(); renderStat(); refit();
+    };
+  });
+  renderStat();
+}
+// 라벨이 바뀌면 채점을 다시 하고 화면 전체를 갱신한다
+function refit(){
+  if(!STATE.F) return;
+  STATE.fit = fitFromLabels(STATE.clim ? STATE.clim.s0 : 3.0);
+  renderFit(); renderBig(); renderStrip(); renderMonths();
+}
+function renderStat(){
+  const ks = Object.keys(flightLog);
+  const off = ks.filter(k=>["official","scrape","manual"].includes(flightLog[k].src));
+  const flew = ks.filter(k=>flightLog[k].s==="flew").length;
+  $("#logStat").textContent = ks.length
+    ? `${ks.length}일 기록 (실측 ${off.length} · 자동추정 ${ks.length-off.length}) · 운항률 ${Math.round(flew/ks.length*100)}%`
+    : "아직 기록 없음";
+}
+
+/* ────────────────────────────────────────────────────────────
+   4) 라벨 수집: ① 프록시 스크래핑 ② 기상 자동추정 ③ 수동
+   ──────────────────────────────────────────────────────────── */
+const PROXIES = [
+  u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+  u => "https://corsproxy.io/?url=" + encodeURIComponent(u),
+  u => "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(u)
+];
+const SITES = [
+  { name:"balloonstatus", url:"https://balloonstatus.com/cappadocia/today/" },
+  { name:"toursce",       url:"https://toursce.com/cappadocia-hot-air-balloon-flight-status-cancellation-checker/" }
+];
+function verdict(text){
+  const t = text.toLowerCase().replace(/<[^>]+>/g," ");
+  const neg = (t.match(/cancell?ed|closed|no flight|not flying|iptal/g)||[]).length;
+  const pos = (t.match(/flew|flying|operating|flyable|will fly|flights are/g)||[]).length;
+  if(neg===0 && pos===0) return null;
+  return neg > pos ? "cancelled" : "flew";
+}
+async function scrapeToday(){
+  const results = [];
+  for(const s of SITES){
+    let got = null;
+    for(const p of PROXIES){
+      try{
+        const r = await fetch(p(s.url), {signal: AbortSignal.timeout(20000)});
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        const txt = await r.text();
+        const v = verdict(txt);
+        if(v){ got = v; break; }
+      }catch(e){ /* 다음 프록시 */ }
+    }
+    results.push({site:s.name, v:got});
+    con(`스크래핑 ${s.name}: ${got||"실패/판독불가"}`);
+  }
+  const votes = results.filter(r=>r.v);
+  if(!votes.length){
+    $("#scrapenote").innerHTML = "<b>스크래핑 실패.</b> 공개 프록시가 전부 막혔습니다. 아래 <b>빈 날짜 기상으로 채우기</b>를 쓰거나, 칸을 직접 클릭해 입력하세요. 안정적인 자동 수집은 GitHub Pages 배포본이 필요합니다.";
+    return;
+  }
+  const flew = votes.filter(v=>v.v==="flew").length, canc = votes.length - flew;
+  const agree = flew===0 || canc===0;
+  flightLog[TODAY] = { s: flew>=canc ? "flew":"cancelled", src:"scrape", note: votes.map(v=>v.site+":"+v.v).join(", ") };
+  save(LSK.log, flightLog); renderLog(); refit();
+  $("#scrapenote").innerHTML = agree
+    ? `오늘 <b>${flew?"운항":"취소"}</b>로 기록했습니다 (${esc(votes.map(v=>v.site).join(", "))}).`
+    : `<b>사이트 간 불일치:</b> ${esc(votes.map(v=>v.site+"="+v.v).join(" / "))}. 다수결로 기록했지만 직접 확인을 권합니다.`;
+}
+
+function backfill(){
+  const F = STATE.F;
+  if(!F || !Object.keys(F.pAnalysis).length){ con("자동 채우기 실패: 실황 데이터 없음"); return; }
+  let n = 0;
+  for(const [date, p] of Object.entries(F.pAnalysis)){
+    if(date > TODAY) continue;
+    if(flightLog[date]) continue;
+    flightLog[date] = { s: p>=0.5 ? "flew":"cancelled", src:"auto", note:"p="+p.toFixed(2) };
+    n++;
+  }
+  save(LSK.log, flightLog); renderLog(); refit();
+  con(`자동 추정 ${n}일 채움 (실측 아님 — 검증용 정답으로는 약함)`);
+}
+
+/* ── 내보내기/가져오기 ── */
+$("#btnExport").onclick = () => {
+  const blob = new Blob([JSON.stringify({exported:new Date().toISOString(), cfg, log:flightLog}, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cappadocia-balloon-log-" + TODAY + ".json";
+  a.click();
+};
+$("#btnImport").onclick = () => $("#fileImport").click();
+$("#fileImport").onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const j = JSON.parse(rd.result);
+      const incoming = j.log || j;
+      let n=0;
+      for(const [k,v] of Object.entries(incoming)){
+        if(!flightLog[k] || (flightLog[k].src==="auto" && v.src!=="auto")){ flightLog[k]=v; n++; }
+      }
+      save(LSK.log, flightLog); renderLog(); refit();
+      con(`가져오기: ${n}일 병합`);
+    }catch(err){ con("가져오기 실패: "+err.message); }
+  };
+  rd.readAsText(f);
+};
+$("#btnScrape").onclick = scrapeToday;
+$("#btnBackfill").onclick = backfill;
+$("#btnClearCache").onclick = () => { localStorage.removeItem(LSK.clim); con("기후값 캐시 삭제됨. 다시 계산을 누르세요."); };
+$("#btnRecalc").onclick = () => {
+  cfg.years = +$("#cfgYears").value || DEF.years;
+  cfg.anchorDays = +$("#cfgAnchor").value || DEF.anchorDays;
+  cfg.tripStart = $("#cfgTripS").value; cfg.tripEnd = $("#cfgTripE").value;
+  save(LSK.cfg, cfg);
+  boot(true);
+};
+
+/* ────────────────────────────────────────────────────────────
+   부팅
+   ──────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────
+   실측 라벨로 모델을 채점하고, 이길 때만 학습 모델로 교체한다.
+   ──────────────────────────────────────────────────────────── */
+function fitFromLabels(s0){
+  const F = STATE.F;
+  if(!F || !F.featByDate) return { use:false, n:0, reason:"기상 특징 없음" };
+  const rows = [];
+  for(const [date, rec] of Object.entries(flightLog)){
+    if(!["official","scrape","manual"].includes(rec.src)) continue;   // 자동추정은 정답이 아니다
+    const f = F.featByDate[date]; if(!f) continue;
+    const x = featVec(f); if(!x) continue;
+    rows.push({ x, y: rec.s==="flew" ? 1 : 0, date, f });
+  }
+  const n = rows.length;
+  if(n < 25) return { use:false, n, reason:"실측 라벨 25일 미만 — 규칙 기반 유지" };
+
+  const X = rows.map(r=>r.x), y = rows.map(r=>r.y);
+  const nFlew = y.filter(v=>v===1).length, nCanc = n - nFlew;
+  const base = Math.max(nFlew, nCanc) / n;                            // 무작정 다수쪽 찍기
+  // 현행 규칙 기반의 성적
+  let rHit=0, rCancHit=0, rBs=0;
+  for(const r of rows){
+    const p = prob(severity(r.f), s0);
+    if((p>=0.5?1:0) === r.y) rHit++;
+    if(r.y===0 && p<0.5) rCancHit++;
+    rBs += (p-r.y)*(p-r.y);
+  }
+  const rule = { acc: rHit/n, recallCancel: nCanc ? rCancHit/nCanc : null, brier: rBs/n };
+  // 기준 Brier: 항상 기저확률만 말하는 모델
+  const rate = nFlew/n;
+  const brierRef = y.reduce((a,v)=>a+(rate-v)*(rate-v),0)/n;
+  const cv = crossVal(X, y);
+  const model = trainLogistic(X, y);
+  const use = cv.acc != null && cv.acc > Math.max(base, rule.acc) + 0.02;
+  return { use, n, nFlew, nCanc, base, brierRef, rule, cv, model, reason: use ? "학습 모델 채택" : "규칙 기반이 더 낫거나 차이 미미 — 유지" };
+}
+
+
+/* 모델 기후값 vs 실측 월별 운항률.
+   차이를 자동으로 흡수하지 않고 그대로 보여준다 — 어긋나는 달이 곧 이 모델의 약점이다. */
+function renderMonthly(){
+  const clim = STATE.clim;
+  if(!clim || !clim.monthly){ $("#monthlybox").innerHTML = '<span class="log">기후값 없음</span>'; return; }
+  const MN = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+  const pc = v => v==null ? "—" : Math.round(v*100)+"%";
+  const diffCell = (mod, obs) => {
+    if(mod==null || obs==null) return "—";
+    const d = Math.round((mod-obs)*100);
+    const c = Math.abs(d)>=15 ? "b" : Math.abs(d)>=8 ? "m" : "g";
+    return `<span class="${c}">${d>0?"+":""}${d}%p</span>`;
+  };
+  let rows = "";
+  let sumAbs = 0, cnt = 0;
+  for(let m=1;m<=12;m++){
+    const mod = clim.monthly[m], o25 = MEASURED[2025][m], o26 = MEASURED[2026][m];
+    const ref = o26!=null ? o26 : o25;
+    if(mod!=null && ref!=null){ sumAbs += Math.abs(mod-ref); cnt++; }
+    rows += `<tr><td>${MN[m-1]}</td><td>${pc(mod)}</td><td>${pc(o25)}</td><td>${pc(o26)}</td><td>${diffCell(mod,o25)}</td></tr>`;
+  }
+  const mae = cnt ? sumAbs/cnt : null;
+  $("#monthlybox").innerHTML =
+    `<table><thead><tr><th>월</th><th>모델(ERA5 기후)</th><th>2025 실측</th><th>2026 실측</th><th>모델−2025</th></tr></thead><tbody>${rows}</tbody></table>` +
+    `<div class="note ${mae!=null && mae>0.12 ? "warn":""}">평균 절대오차 <b>${mae==null?"—":Math.round(mae*100)+"%p"}</b>.
+      10%p 이내면 계절 형태를 대체로 맞춘 것이고, 특정 달만 크게 어긋나면 그 달의 취소 원인(안개·저층제트 등)을 모델이 못 잡고 있다는 뜻입니다.</div>` +
+    `<div class="note">2025 수치는 balloonscanner 집계(출처 미공개)라 참고용이고, 2026 수치는 epicturkeytravel이 SHGM 결정을 매일 기록한 138일치입니다.
+      두 해 사이에도 5월(74%→55%)·8월(83%→70%)처럼 큰 차이가 나므로, 한 해 값을 정답처럼 쓰면 안 됩니다.</div>`;
+}
+
+function renderFit(){
+  const f = STATE.fit;
+  if(!f){ $("#fitbox").innerHTML = '<span class="log">계산 대기 중…</span>'; return; }
+  const pc = v => v==null ? "—" : Math.round(v*100)+"%";
+  if(!f.n){ $("#fitbox").innerHTML = `<div class="note warn">채점할 실측 라벨이 없습니다. ${esc(f.reason||"")}</div>`; return; }
+  const bz = v => v==null ? "—" : v.toFixed(3);
+  let html = `<div class="scroll"><table><thead><tr><th>방식</th><th>정확도</th><th>취소일 적중률</th><th>Brier ↓</th><th>비고</th></tr></thead><tbody>
+    <tr><td>기저확률만 말하기</td><td>${pc(f.base)}</td><td>—</td><td>${bz(f.brierRef)}</td><td>기준선</td></tr>`;
+  if(f.rule) html += `<tr><td>규칙 기반(현행 기본값)</td><td>${pc(f.rule.acc)}</td><td>${pc(f.rule.recallCancel)}</td><td>${bz(f.rule.brier)}</td><td>규정·문헌 기반 임계값</td></tr>`;
+  if(f.cv)  html += `<tr><td>실측 학습(교차검증)</td><td>${pc(f.cv.acc)}</td><td>${pc(f.cv.recallCancel)}</td><td>${bz(f.cv.brier)}</td><td>${f.cv.n}일 홀드아웃</td></tr>`;
+  html += `</tbody></table></div>`;
+  html += `<div class="note ${f.use?"":"warn"}"><b>${f.use?"학습 모델을 씁니다.":"규칙 기반을 유지합니다."}</b> ${esc(f.reason)}
+    · 실측 ${f.n}일 (운항 ${f.nFlew} / 취소 ${f.nCanc})</div>`;
+  if(f.use && f.model){
+    const w = f.model.w;
+    html += `<div class="note">학습된 가중치 (음수일수록 취소 쪽으로 미는 요인): ` +
+      FEATN.map((nm,i)=>`${esc(nm)} ${w[i]>=0?"+":""}${w[i].toFixed(2)}`).join(" · ") + `</div>`;
+  }
+  html += `<div class="note">확률 앱의 진짜 점수는 정확도가 아니라 <b>Brier</b>(낮을수록 좋음)입니다.
+    기준선보다 낮아야 "확률을 말할 자격"이 있는 모델입니다.</div>`;
+  html += `<div class="note warn"><b>취소일 적중률</b>이 낮으면 이 앱은 "웬만하면 뜬다"고만 말하는 셈입니다.
+    실제로 못 뜬 날을 얼마나 잡아내는지가 이 앱의 존재 이유이므로, 정확도보다 이 숫자를 보세요.</div>`;
+  $("#fitbox").innerHTML = html;
+}
+
+/* 배포본(GitHub Pages)일 때: Actions가 매일 갱신하는 data/log.json을 같은 출처에서 읽어 병합.
+   로컬 파일로 열면 조용히 실패하고 프록시/수동 경로로 넘어간다. */
+async function mergeServerLog(){
+  try{
+    const r = await fetch("data/log.json", {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const j = await r.json();
+    const inc = j.log || j;
+    let n = 0;
+    for(const [k,v] of Object.entries(inc)){
+      const cur = flightLog[k];
+      // 서버 실측이 로컬 자동추정을 이긴다. 사용자의 수동 입력은 건드리지 않는다.
+      if(!cur || (cur.src === "auto" && v.src !== "auto")){ flightLog[k] = v; n++; }
+    }
+    if(n) save(LSK.log, flightLog);
+    diag("서버 기록(data/log.json)", true, `${Object.keys(inc).length}일 중 ${n}일 병합`);
+    return true;
+  }catch(e){
+    diag("서버 기록(data/log.json)", false, "없음 — 로컬 모드로 동작 (정상)");
+    return false;
+  }
+}
+
+async function boot(force){
+  $("#cfgYears").value = cfg.years; $("#cfgAnchor").value = cfg.anchorDays;
+  $("#cfgTripS").value = cfg.tripStart || ""; $("#cfgTripE").value = cfg.tripEnd || "";
+  $("#yrs").textContent = cfg.years;
+  document.querySelectorAll(".yrs2").forEach(e=>e.textContent = cfg.years);
+  diagRows.length = 0; renderDiag(); conEl.textContent = "";
+  renderLog();
+
+  // 실측 시드 1회 주입 (사용자가 지운 라벨을 되살리지 않도록 플래그로 잠근다)
+  if(!load(LSK.seed, false)){
+    let n = 0;
+    for(const [k,v] of Object.entries(SEED)){
+      const cur = flightLog[k];
+      if(!cur || (cur.src==="auto" && v.src!=="auto")){ flightLog[k] = Object.assign({}, v); n++; }
+    }
+    save(LSK.log, flightLog); save(LSK.seed, true);
+    diag("실측 시드 주입", true, `${n}일 (2026-07-05~08-26 공식 판정 구간 포함)`);
+  }
+
+  await mergeServerLog();
+  renderLog();
+
+  const clim = await buildClimatology(force);
+  STATE.clim = clim;
+  renderMonths(); renderMonthly();
+
+  const s0 = clim ? clim.s0 : 3.0;
+  const F = await buildForecast(s0);
+  STATE.F = F;
+  STATE.ens = await buildEnsemble(s0);
+
+  // 라벨로 채점 → 이기면 학습 모델로 교체 → 그 결과로 다시 렌더
+  STATE.fit = fitFromLabels(s0);
+  renderFit();
+  diag("모델 채점", true, STATE.fit.n ? `실측 ${STATE.fit.n}일 · ${STATE.fit.reason}` : STATE.fit.reason);
+
+  renderBig(); renderStrip(); renderMonths();
+
+  // 기록이 하나도 없으면 첫 실행 시 자동 채움
+  if(!Object.keys(flightLog).length) backfill();
+}
+boot(false);
+</script>
+</body>
+</html>
