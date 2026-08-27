@@ -93,7 +93,7 @@ function parseEpic(html) {
 
 const SOURCES = [
   { name: "Balloon Status", url: "https://balloonstatus.com/cappadocia/forecast/", parse: parseBalloonStatus, exact: true },
-  { name: "ToursCE", url: "https://toursce.com/cappadocia-hot-air-balloon-flight-status-cancellation-checker/", parse: parseToursCE, exact: true },
+  // ToursCE: Cloudflare 가 403 으로 막는다. 파서는 남겨두되 목록에서 뺀다.
   { name: "Epic Turkey", url: "https://epicturkeytravel.com/cappadocia-balloon-flight-status/", parse: parseEpic, exact: false }
 ];
 

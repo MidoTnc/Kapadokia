@@ -15,12 +15,13 @@ const LAT = 38.6431, LON = 34.8289, TZ = "Europe/Istanbul";
 /* 자동 추정 기준이 바뀌면 이 숫자를 올린다.
    그러면 예전 기준으로 찍어둔 auto 기록을 다음 실행 때 알아서 다시 계산한다.
    (사람이 넣은 기록과 사이트에서 읽어온 기록은 절대 건드리지 않는다) */
-const EST_VERSION = 3;
+const EST_VERSION = 4;   // 앱과 계산 일치화 (900/800hPa·저층운량 추가)
 const OUT = new URL("../data/log.json", import.meta.url);
 
 const SITES = [
-  { name: "balloonstatus", url: "https://balloonstatus.com/cappadocia/today/" },
-  { name: "toursce",       url: "https://toursce.com/cappadocia-hot-air-balloon-flight-status-cancellation-checker/" },
+  { name: "balloonstatus", url: "https://balloonstatus.com/" },          // 홈이 "flew 05:30–09:30" 을 보여줘 오독이 적다
+  { name: "balloonstatus2", url: "https://balloonstatus.com/cappadocia/today/" },
+  // ToursCE 는 Cloudflare 가 서버 요청을 403 으로 막는다. 다른 곳과 값도 가장 많이 어긋나 제외.
   { name: "epicturkey",    url: "https://epicturkeytravel.com/cappadocia-balloon-flight-status/" }
 ];
 
@@ -32,6 +33,29 @@ const HDRS = {
   "cache-control": "no-cache"
 };
 const pad = n => String(n).padStart(2, "0");
+
+/* 앱과 동일한 일출 계산 (NOAA) */
+function sunriseLocal(dateStr){
+  const [Y,M,Dd] = dateStr.split("-").map(Number);
+  const rad = Math.PI/180;
+  const JD = Date.UTC(Y,M-1,Dd)/864e5 + 2440587.5;        // 그날 00:00 UTC 의 율리우스일
+  const n = Math.ceil(JD - 2451545.0 + 0.0008);
+  const Jstar = n - LON/360;                            // 동경일수록 남중이 이르다
+  const Msun = (357.5291 + 0.98560028*Jstar) % 360;
+  const C = 1.9148*Math.sin(Msun*rad) + 0.02*Math.sin(2*Msun*rad) + 0.0003*Math.sin(3*Msun*rad);
+  const lam = (Msun + C + 180 + 102.9372) % 360;
+  const Jtransit = 2451545.0 + Jstar + 0.0053*Math.sin(Msun*rad) - 0.0069*Math.sin(2*lam*rad);
+  const decl = Math.asin(Math.sin(lam*rad) * Math.sin(23.4397*rad));
+  const cosW = (Math.sin(-0.833*rad) - Math.sin(LAT*rad)*Math.sin(decl)) /
+               (Math.cos(LAT*rad)*Math.cos(decl));
+  if(cosW > 1 || cosW < -1) return null;
+  const w = Math.acos(cosW)/rad;
+  const ms = ((Jtransit - w/360) - 2440587.5)*864e5 + 3*3600e3;   // 터키는 연중 UTC+3
+  const d = new Date(ms);
+  return dateStr + "T" + pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes());
+}
+
+
 const todayLocal = () => {
   const p = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
     .formatToParts(new Date()).reduce((a, x) => (a[x.type] = x.value, a), {});
@@ -85,54 +109,99 @@ async function loadS0() {
   return 1.23;
 }
 
-/* Open-Meteo 실황으로 과거 날짜 자동 추정 (앱과 같은 기준) */
+/* Open-Meteo 실황으로 과거 날짜 자동 추정.
+ *
+ * 중요: 여기 계산은 앱(index.html) 및 climatology.mjs 와 "완전히 같아야" 한다.
+ * 예전엔 850hPa 하나만 받고 저층운량도 빼먹은 간이 버전이라, 같은 날을 앱은 취소로
+ * 보는데 스크래퍼는 운항으로 찍는 일이 생겼다. 변수 목록과 판정식을 그대로 맞췄다.
+ */
+const VARSETS = [
+  ["wind_speed_10m","wind_gusts_10m","precipitation","cloud_cover_low","visibility",
+   "temperature_2m","dew_point_2m","wind_speed_900hPa","wind_speed_850hPa","wind_speed_800hPa"],
+  ["wind_speed_10m","wind_gusts_10m","precipitation","temperature_2m","dew_point_2m","wind_speed_850hPa"],
+  ["wind_speed_10m","wind_gusts_10m","precipitation","temperature_2m","dew_point_2m"]
+];
+
+function featuresOf(hourly, list, sr) {
+  const srMin = +sr.slice(11, 13) * 60 + +sr.slice(14, 16);
+  const lo = srMin - 105, hi = srMin + 120;      // 일출 -45분 ~ +2시간 (1시간 해상도 여유)
+  const g = n => hourly[n] || null;
+  const A = {
+    w10: g("wind_speed_10m"), gu: g("wind_gusts_10m"), pr: g("precipitation"),
+    ccl: g("cloud_cover_low"), vi: g("visibility"), t2: g("temperature_2m"), td: g("dew_point_2m"),
+    w900: g("wind_speed_900hPa"), w850: g("wind_speed_850hPa"), w800: g("wind_speed_800hPa")
+  };
+  let w10 = -1, gu = -1, wal = -1, pr = 0, vi = null, cclS = 0, n = 0, dewDep = null, w10s = 0;
+  for (const { i, min } of list) {
+    if (min < lo || min > hi) continue;
+    n++;
+    const mx = (arr, cur) => (arr && arr[i] != null) ? Math.max(cur, arr[i]) : cur;
+    w10 = mx(A.w10, w10); gu = mx(A.gu, gu);
+    wal = mx(A.w900, wal); wal = mx(A.w850, wal); wal = mx(A.w800, wal);
+    if (A.pr && A.pr[i] != null) pr += A.pr[i];
+    if (A.vi && A.vi[i] != null) vi = vi == null ? A.vi[i] : Math.min(vi, A.vi[i]);
+    if (A.ccl && A.ccl[i] != null) cclS += A.ccl[i];
+    if (A.t2 && A.td && A.t2[i] != null && A.td[i] != null) {
+      const dd = A.t2[i] - A.td[i]; dewDep = dewDep == null ? dd : Math.min(dewDep, dd);
+    }
+    if (A.w10 && A.w10[i] != null) w10s = A.w10[i];
+  }
+  if (!n || w10 < 0) return null;
+  if (gu < 0) gu = w10 * 1.5;
+  return { w10, gu, wal: wal < 0 ? null : wal, llj: wal >= 0 ? Math.max(0, wal - w10) : null,
+           dewDep, pr, vi, ccl: n ? cclS / n : null, w10s };
+}
+
+function severityOf(f) {
+  if (!f) return null;
+  const over = (x, t, sc) => x == null ? 0 : Math.max(0, (x - t) / sc);
+  let s = 0;
+  s += over(f.w10, 10, 2.5) * 2.0;      // 규정 지상 10kt
+  s += over(f.gu, 15, 4);
+  s += over(f.wal, 16, 5) * 1.5;        // 비행 고도대 (900~800hPa 중 최대)
+  s += over(f.llj, 8, 4) * 1.2;         // 저층 제트
+  if (f.pr > 0.2) s += 3.5;
+  if (f.vi != null) { if (f.vi < 2000) s += 3.5; else if (f.vi < 5000) s += 1.0; }
+  if (f.dewDep != null && f.dewDep < 2.2 && f.w10s < 7) s += 1.5;
+  if (f.ccl != null && f.ccl > 70) s += 0.6;
+  return s;
+}
+
 async function autoLabels(days = 60, s0 = 1.23) {
-  const q = new URLSearchParams({
-    latitude: LAT, longitude: LON, timezone: TZ, wind_speed_unit: "kn",
-    hourly: "wind_speed_10m,wind_gusts_10m,precipitation,visibility,wind_speed_850hPa,temperature_2m,dew_point_2m",
-    daily: "sunrise", past_days: String(days), forecast_days: "1"
-  });
-  const d = await (await fetch("https://api.open-meteo.com/v1/forecast?" + q, { signal: AbortSignal.timeout(40000) })).json();
-  const sun = {};
-  d.daily.time.forEach((t, i) => sun[t] = d.daily.sunrise[i]);
+  let d = null;
+  for (const vs of VARSETS) {
+    const q = new URLSearchParams({
+      latitude: LAT, longitude: LON, timezone: TZ, wind_speed_unit: "kn",
+      hourly: vs.join(","), past_days: String(days), forecast_days: "1"
+    });
+    try {
+      const r = await fetch("https://api.open-meteo.com/v1/forecast?" + q, { signal: AbortSignal.timeout(40000) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      d = await r.json();
+      console.log(`기상 변수 ${vs.length}종 사용`);
+      break;
+    } catch (e) { console.log(`변수 ${vs.length}종 실패: ${e.message}`); }
+  }
+  if (!d || !d.hourly) throw new Error("기상 데이터를 받지 못함");
 
   const rows = {};
   d.hourly.time.forEach((t, i) => {
     const date = t.slice(0, 10);
-    const min = +t.slice(11, 13) * 60 + +t.slice(14, 16);
-    (rows[date] ||= []).push({ i, min });
+    (rows[date] ||= []).push({ i, min: +t.slice(11, 13) * 60 + +t.slice(14, 16) });
   });
 
   const out = {};
+  let canc = 0;
   for (const [date, list] of Object.entries(rows)) {
-    const sr = sun[date]; if (!sr) continue;
-    const srMin = +sr.slice(11, 13) * 60 + +sr.slice(14, 16);
-    const lo = srMin - 105, hi = srMin + 120;  // 일출 -45분~+2시간 (1시간 해상도 여유)
-    let w = -1, g = -1, wal = -1, pr = 0, vi = Infinity, dd = Infinity, n = 0;
-    for (const { i, min } of list) {
-      if (min < lo || min > hi) continue;
-      n++;
-      w = Math.max(w, d.hourly.wind_speed_10m[i] ?? -1);
-      g = Math.max(g, d.hourly.wind_gusts_10m[i] ?? -1);
-      wal = Math.max(wal, d.hourly.wind_speed_850hPa?.[i] ?? -1);
-      pr += d.hourly.precipitation[i] ?? 0;
-      vi = Math.min(vi, d.hourly.visibility?.[i] ?? Infinity);
-      const t = d.hourly.temperature_2m?.[i], td = d.hourly.dew_point_2m?.[i];
-      if (t != null && td != null) dd = Math.min(dd, t - td);
-    }
-    if (!n || w < 0) continue;
-    // 앱과 같은 기준: 지상 10kt(규정) · 850hPa 16kt · 저층제트 · 시정 2000m(규정) · 복사안개
-    let s = Math.max(0, (w - 10) / 2.5) * 2 + Math.max(0, (g - 15) / 4);
-    if (wal >= 0) {
-      s += Math.max(0, (wal - 16) / 5) * 1.5;
-      s += Math.max(0, (wal - w - 8) / 4) * 1.2;
-    }
-    if (pr > 0.2) s += 3.5;
-    if (vi < 2000) s += 3.5; else if (vi < 5000) s += 1;
-    if (dd < 2.2 && w < 7) s += 1.5;
-    // 앱과 동일: p = 1/(1+exp(1.6*(s-s0))) 가 0.5 미만이면 취소. 즉 s > s0.
-    out[date] = { s: s <= s0 ? "flew" : "cancelled", src: "auto", est: EST_VERSION, note: `s=${s.toFixed(2)}` };
+    const sr = sunriseLocal(date); if (!sr) continue;
+    const s = severityOf(featuresOf(d.hourly, list, sr));
+    if (s == null) continue;
+    // 앱과 동일: p = 1/(1+exp(1.6*(s-s0))) < 0.5 이면 취소. 즉 s > s0.
+    const v = s <= s0 ? "flew" : "cancelled";
+    if (v === "cancelled") canc++;
+    out[date] = { s: v, src: "auto", est: EST_VERSION, note: `s=${s.toFixed(2)}` };
   }
+  console.log(`추정 결과: ${Object.keys(out).length}일 중 취소 ${canc}일`);
   return out;
 }
 
