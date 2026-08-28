@@ -365,12 +365,18 @@
    "src": "auto",
    "est": 4,
    "note": "s=0.00"
+  },
+  "2026-08-28": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus:cancelled, balloonstatus2:cancelled"
   }
  },
- "updated": "2026-08-27T16:25:34.291Z",
+ "updated": "2026-08-28T07:29:24.813Z",
  "counts": {
-  "total": 61,
-  "measured": 1,
+  "total": 62,
+  "measured": 2,
   "flew": 56
  }
 }
