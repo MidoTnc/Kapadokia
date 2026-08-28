@@ -502,7 +502,7 @@ function severity(f){
 }
 
 /* ── 실측 라벨로 계수를 다시 학습 (로지스틱 회귀 + L2) ── */
-const FEATN = ["지상풍","돌풍","상층풍","저층제트","이슬점차","역전층","강수","저시정","평년대비"];
+const FEATN = ["지상풍","돌풍","상층풍","저층제트","이슬점차","역전층","강수","저시정","평년대비","방향시어"];
 
 /* 경험 역산 변수: 이 날짜의 위험도가 "같은 절기의 15년 분포"에서 상위 몇 %인가.
    운항위원회는 절대 풍속만이 아니라 그 계절의 감각으로도 판단한다 —
@@ -541,7 +541,11 @@ function featVec(f, date){
     f.inv  != null ? f.inv  : 0,
     f.pr > 0.2 ? 1 : 0,
     (f.vi != null && f.vi < 5000) ? 1 : 0,
-    date ? anomOf(date, severity(f)) : 0.5
+    date ? anomOf(date, severity(f)) : 0.5,
+    /* 지상과 850hPa 의 풍향 차이. 기구는 옆으로 못 가고 고도를 바꿔 층을 갈아타는 식으로만
+       방향을 고른다. 층끼리 방향이 같으면 착륙지를 못 고르고, 너무 어긋나면 위험하다.
+       그래서 클수록 나쁘다고 볼 수 없는 값이라 학습에 맡긴다. */
+    f.shearDir != null ? f.shearDir : 45
   ];
 }
 
@@ -1202,7 +1206,8 @@ function verdict(text){
   if(neg===0 && pos===0) return null;
   return neg > pos ? "cancelled" : "flew";
 }
-async function scrapeToday(){
+async function scrapeToday(opt){
+  const quiet = opt && opt.quiet;
   const results = [];
   for(const s of SITES){
     let got = null;
@@ -1225,9 +1230,15 @@ async function scrapeToday(){
   }
   const flew = votes.filter(v=>v.v==="flew").length, canc = votes.length - flew;
   const agree = flew===0 || canc===0;
-  flightLog[TODAY] = { s: flew>=canc ? "flew":"cancelled", src:"scrape", note: votes.map(v=>v.site+":"+v.v).join(", ") };
+  if(flew === canc){
+    // 찬반 동수면 찍지 않는다. 틀린 정답은 학습을 망친다.
+    if(!quiet) $("#scrapenote").innerHTML =
+      `<b>사이트 의견이 갈립니다:</b> ${esc(votes.map(v=>v.site+"="+v.v).join(" / "))}. 직접 확인 후 칸을 눌러 기록해 주세요.`;
+    return;
+  }
+  flightLog[TODAY] = { s: flew>canc ? "flew":"cancelled", src:"scrape", note: votes.map(v=>v.site+":"+v.v).join(", ") };
   save(LSK.log, flightLog); renderLog(); refit();
-  $("#scrapenote").innerHTML = agree
+  if(!quiet) $("#scrapenote").innerHTML = agree
     ? `오늘 <b>${flew?"운항":"취소"}</b>로 기록했습니다 (${esc(votes.map(v=>v.site).join(", "))}).`
     : `<b>사이트 간 불일치:</b> ${esc(votes.map(v=>v.site+"="+v.v).join(" / "))}. 다수결로 기록했지만 직접 확인을 권합니다.`;
 }
@@ -1328,12 +1339,26 @@ function fitFromLabels(s0){
   const brierRef = y.reduce((a,v)=>a+(rate-v)*(rate-v),0)/n;
   const cv = crossVal(X, y);
   const model = trainLogistic(X, y);
+
+  /* 놓친 취소일을 따로 모은다. 이 중 "날씨가 멀쩡했던 날"이 몇이나 되는지가
+     이 앱의 한계선을 알려준다 — 날씨에 흔적이 없는 취소는 어떤 모델도 못 맞힌다. */
+  const benign = f => f && f.w10 < 10 && (f.wal == null || f.wal < 16) && f.pr <= 0.2 &&
+                      (f.vi == null || f.vi >= 5000) && (f.dewDep == null || f.dewDep >= 2.2);
+  const missed = [];
+  for(const r of rows){
+    if(r.y !== 0) continue;                                  // 취소일만
+    const p = model.predict(r.x);
+    if(p < 0.5) continue;                                    // 이미 잡은 날
+    missed.push({ date: r.date, f: r.f, p, benign: benign(r.f) });
+  }
+  missed.sort((a,b)=>b.p-a.p);
+  const nBenign = missed.filter(m=>m.benign).length;
   /* 채택 기준을 정확도가 아니라 "균형 정확도"로 본다.
      정확도는 다수쪽만 찍어도 66% 나와서, 취소를 잘 잡는 모델이 오히려 손해를 봤다.
      균형 정확도 = (뜬날 적중률 + 취소일 적중률) / 2. 다수쪽 찍기는 정확히 50%가 된다. */
   const ruleBal = rule.balAcc != null ? rule.balAcc : 0.5;
   const use = cv.balAcc != null && cv.balAcc > Math.max(0.5, ruleBal) + 0.02;
-  return { use, n, nFlew, nCanc, base, brierRef, rule, cv, model,
+  return { use, n, nFlew, nCanc, base, brierRef, rule, cv, model, missed, nBenign,
            reason: use ? "학습 모델 채택 (균형 정확도 기준)" : "규칙 기반이 더 낫거나 차이 미미 — 유지" };
 }
 
@@ -1449,6 +1474,26 @@ function renderFit(){
         표본이 ${f.n}일뿐이라 순서는 앞으로 바뀔 수 있습니다.</div>`;
     }
   }
+  if(f.missed && f.missed.length){
+    const rowsH = f.missed.slice(0,8).map(m=>{
+      const g = m.f;
+      return `<tr><td>${D.label(m.date)}</td>
+        <td>${g.w10.toFixed(1)}kt</td>
+        <td>${g.wal==null?"—":g.wal.toFixed(1)+"kt"}</td>
+        <td>${g.gu.toFixed(1)}kt</td>
+        <td>${g.vi==null?"—":Math.round(g.vi/1000)+"km"}</td>
+        <td>${m.benign?'<span class="b">날씨 이상 없음</span>':'<span class="m">일부 나쁨</span>'}</td></tr>`;
+    }).join("");
+    html += `<div class="scroll" style="margin-top:14px"><table>
+      <thead><tr><th>놓친 취소일</th><th>지상풍</th><th>상층풍</th><th>돌풍</th><th>시정</th><th>판정</th></tr></thead>
+      <tbody>${rowsH}</tbody></table></div>`;
+    const pct2 = Math.round(f.nBenign / f.missed.length * 100);
+    html += `<div class="note ${f.nBenign?"warn":""}">놓친 ${f.missed.length}일 중 <b>${f.nBenign}일(${pct2}%)</b>은
+      바람·시정·강수가 모두 정상 범위였습니다. 날씨에 흔적이 없는 취소라
+      <b>기상 데이터를 아무리 늘려도 맞힐 수 없는 날</b>입니다.
+      실제로 2026-08-28 은 지상 2kt·상공 4kt·시정 40km 였는데도 전 섹터 취소였습니다.
+      이 비율이 곧 이 앱의 한계선입니다.</div>`;
+  }
   html += `<div class="note">채택은 <b>균형 정확도</b>로 판정합니다 — 뜬날 적중률과 취소일 적중률의 평균이라,
     "무조건 뜬다"고 찍으면 50%밖에 안 나옵니다. 학습에는 취소일에 약 2배 가중치를 줘서
     취소를 놓치는 쪽의 벌점을 키웠고, "그 계절치고 얼마나 이례적인 날인가"를 과거 15년에서
@@ -1532,6 +1577,22 @@ async function boot(force){
 
   renderTrip(); renderBig(); renderStrip(); renderMonths();
   await loadPeers(); renderPeers();
+
+  /* 오늘 확정 기록이 아직 없으면 앱이 스스로 사이트를 확인한다.
+     서버 수집은 하루 몇 번뿐이라, 그 사이에 열어본 사람도 최신 상태를 보게 하려는 것.
+     같은 날 두 번 이상은 시도하지 않고, 실패해도 조용히 넘어간다. */
+  const todayRec = flightLog[TODAY];
+  const confirmed = todayRec && ["official","scrape","manual"].includes(todayRec.src);
+  const triedKey = "cb.autoscrape";
+  if(!confirmed && load(triedKey, "") !== TODAY){
+    save(triedKey, TODAY);
+    diag("오늘 상태 자동 확인", null, "사이트 조회 중…");
+    try{ await scrapeToday({ quiet:true }); }catch(e){}
+    const after = flightLog[TODAY];
+    diagSet(diagRows.length-1, !!after,
+      after ? `${after.s==="flew"?"떴음":"취소"} 으로 기록` : "판독 실패 — 서버 수집을 기다립니다");
+  }
+
   fillHints();
 
   diag("API 호출 수", true, `이번 실행 ${API_CALLS}건` +
