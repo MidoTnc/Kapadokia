@@ -580,6 +580,21 @@ function trainLogistic(X, y, l2=1.0, iters=4000, lr=0.12){
   return { w, b, mu, sd,
     predict(x){ let z=this.b; for(let j=0;j<this.w.length;j++) z+=this.w[j]*((x[j]-this.mu[j])/this.sd[j]); return 1/(1+Math.exp(-z)); } };
 }
+/* 각 표본을 학습에서 제외한 채 예측한 값(out-of-fold). 정직한 자기 채점용. */
+function crossValPredict(X, y, k=5){
+  const idx = X.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){ const j=(i*2654435761)%(i+1); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  const out = Array(X.length).fill(null);
+  for(let f=0; f<k; f++){
+    const te = idx.filter((_,i)=>i%k===f), tr = idx.filter((_,i)=>i%k!==f);
+    if(tr.length<10 || !te.length) continue;
+    const ys = tr.map(i=>y[i]);
+    if(ys.every(v=>v===ys[0])) continue;
+    const m = trainLogistic(tr.map(i=>X[i]), ys);
+    for(const i of te) out[i] = m.predict(X[i]);
+  }
+  return out;
+}
 function crossVal(X, y, k=5){
   const idx = X.map((_,i)=>i);
   // 고정 셔플(재현 가능)
@@ -791,6 +806,34 @@ async function buildForecast(s0){
     }
     diag("실황/기본예보", true, `${Object.keys(pAnalysis).length}일 (과거 ${PAST_DAYS}일 포함)`);
   }
+
+  /* 과거 날짜는 재분석(ERA5) 으로 덮어쓴다.
+     예보 API 의 past_days 구간은 기압면(900·850·800hPa) 값이 비어서 오는 일이 잦다.
+     그러면 상층풍·저층제트 변수가 통째로 죽고, 채점표의 "상층풍 —" 이 그 흔적이다.
+     ERA5 는 기압면을 확실히 주므로 라벨 구간의 학습 재료가 제대로 채워진다. */
+  const archEnd = D.add(TODAY, -5);                  // ERA5 는 며칠 지연된다
+  const archStart = D.add(TODAY, -PAST_DAYS);
+  let nUp = 0, nArch = 0;
+  for(const vs of VARSETS){
+    try{
+      const arch = await getJSON(OM("https://archive-api.open-meteo.com/v1/archive", Object.assign({}, COMMON, {
+        start_date: archStart, end_date: archEnd, hourly: vs.join(",") })));
+      const idx = indexHourly(arch.hourly.time);
+      for(const date of Object.keys(idx)){
+        const f = features(arch.hourly, idx, sun, date, "");
+        if(!f) continue;
+        featByDate[date] = f; nArch++;
+        if(f.wal != null) nUp++;
+        const p = prob(severity(f), s0);
+        if(p!=null) pAnalysis[date] = p;
+      }
+      break;
+    }catch(e){ con("재분석 변수세트 실패: "+e.message); }
+  }
+  diag("과거 재분석(ERA5)", nArch>0, nArch
+    ? `${nArch}일 보강 · 그중 상층풍 있는 날 ${nUp}일`
+    : "실패 — 상층풍 없이 학습합니다");
+
   return { sun, pAnalysis, featByDate, perModel:{}, featPerModel:{}, okModels:[] };
 }
 
@@ -1342,15 +1385,20 @@ function fitFromLabels(s0){
 
   /* 놓친 취소일을 따로 모은다. 이 중 "날씨가 멀쩡했던 날"이 몇이나 되는지가
      이 앱의 한계선을 알려준다 — 날씨에 흔적이 없는 취소는 어떤 모델도 못 맞힌다. */
-  const benign = f => f && f.w10 < 10 && (f.wal == null || f.wal < 16) && f.pr <= 0.2 &&
+  // 상층풍이 비어 있으면 "날씨 이상 없음"이라고 단정하지 않는다 — 모르는 것과 괜찮은 것은 다르다
+  const benign = f => f && f.w10 < 10 && f.wal != null && f.wal < 16 && f.pr <= 0.2 &&
                       (f.vi == null || f.vi >= 5000) && (f.dewDep == null || f.dewDep >= 2.2);
+  /* 놓친 날 판정은 홀드아웃(교차검증) 예측으로 한다.
+     학습에 쓴 데이터로 자기 채점을 하면 실제보다 후하게 나와, 표에 3일만 뜨는데
+     실제 취소일 적중률은 59% (7일 놓침) 인 모순이 생겼다. */
+  const oof = crossValPredict(X, y);
   const missed = [];
-  for(const r of rows){
-    if(r.y !== 0) continue;                                  // 취소일만
-    const p = model.predict(r.x);
-    if(p < 0.5) continue;                                    // 이미 잡은 날
+  rows.forEach((r, i) => {
+    if(r.y !== 0) return;                                    // 취소일만
+    const p = oof[i] != null ? oof[i] : model.predict(r.x);
+    if(p < 0.5) return;                                      // 이미 잡은 날
     missed.push({ date: r.date, f: r.f, p, benign: benign(r.f) });
-  }
+  });
   missed.sort((a,b)=>b.p-a.p);
   const nBenign = missed.filter(m=>m.benign).length;
   /* 채택 기준을 정확도가 아니라 "균형 정확도"로 본다.
@@ -1479,10 +1527,10 @@ function renderFit(){
       const g = m.f;
       return `<tr><td>${D.label(m.date)}</td>
         <td>${g.w10.toFixed(1)}kt</td>
-        <td>${g.wal==null?"—":g.wal.toFixed(1)+"kt"}</td>
+        <td>${g.wal==null?'<span class="m">자료없음</span>':g.wal.toFixed(1)+"kt"}</td>
         <td>${g.gu.toFixed(1)}kt</td>
         <td>${g.vi==null?"—":Math.round(g.vi/1000)+"km"}</td>
-        <td>${m.benign?'<span class="b">날씨 이상 없음</span>':'<span class="m">일부 나쁨</span>'}</td></tr>`;
+        <td>${m.benign?'<span class="b">날씨 이상 없음</span>':(m.f.wal==null?'<span class="m">판단 불가</span>':'<span class="m">일부 나쁨</span>')}</td></tr>`;
     }).join("");
     html += `<div class="scroll" style="margin-top:14px"><table>
       <thead><tr><th>놓친 취소일</th><th>지상풍</th><th>상층풍</th><th>돌풍</th><th>시정</th><th>판정</th></tr></thead>
