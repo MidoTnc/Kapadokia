@@ -502,8 +502,35 @@ function severity(f){
 }
 
 /* ── 실측 라벨로 계수를 다시 학습 (로지스틱 회귀 + L2) ── */
-const FEATN = ["지상풍","돌풍","상층풍","저층제트","이슬점차","역전층","강수","저시정"];
-function featVec(f){
+const FEATN = ["지상풍","돌풍","상층풍","저층제트","이슬점차","역전층","강수","저시정","평년대비"];
+
+/* 경험 역산 변수: 이 날짜의 위험도가 "같은 절기의 15년 분포"에서 상위 몇 %인가.
+   운항위원회는 절대 풍속만이 아니라 그 계절의 감각으로도 판단한다 —
+   9월의 12kt와 2월의 12kt는 다른 결정을 부른다. 과거 데이터에서 그 감각을 역산한다. */
+function anomOf(date, sev){
+  const clim = STATE.clim;
+  if(sev == null || !clim || !clim.dayS) return 0.5;
+  if(!STATE._doyS){
+    const m = {};
+    for(const [k,v] of Object.entries(clim.dayS)) (m[D.doy(k)] = m[D.doy(k)] || []).push(v);
+    STATE._doyS = m; STATE._poolCache = {};
+  }
+  const dy = D.doy(date);
+  let pool = STATE._poolCache[dy];
+  if(!pool){
+    pool = [];
+    for(let k=-10;k<=10;k++){
+      const d2 = ((dy+k-1)%366+366)%366 + 1;
+      const arr = STATE._doyS[d2]; if(arr) pool.push(...arr);
+    }
+    STATE._poolCache[dy] = pool;
+  }
+  if(pool.length < 30) return 0.5;
+  let le = 0; for(const v of pool) if(v <= sev) le++;
+  return le / pool.length;
+}
+
+function featVec(f, date){
   if(!f) return null;
   return [
     f.w10,
@@ -513,13 +540,20 @@ function featVec(f){
     f.dewDep != null ? f.dewDep : 8,
     f.inv  != null ? f.inv  : 0,
     f.pr > 0.2 ? 1 : 0,
-    (f.vi != null && f.vi < 5000) ? 1 : 0
+    (f.vi != null && f.vi < 5000) ? 1 : 0,
+    date ? anomOf(date, severity(f)) : 0.5
   ];
 }
 
-/* ── 실측 라벨로 계수를 다시 학습 (로지스틱 회귀 + L2) ── */
+/* ── 실측 라벨로 계수를 다시 학습 (로지스틱 회귀 + L2 + 클래스 균형 가중) ──
+   취소일은 표본의 3분의 1뿐이라 그냥 학습하면 "웬만하면 뜬다"고만 말하게 된다.
+   취소 표본에 (뜬날 수 / 취소 수) 가중치를 줘서, 취소를 놓치는 비용을 키운다. */
 function trainLogistic(X, y, l2=1.0, iters=4000, lr=0.12){
   const n = X.length, d = X[0].length;
+  const nPos = y.filter(v=>v===1).length, nNeg = n - nPos;
+  const wNeg = nNeg ? Math.min(4, nPos/nNeg) : 1;     // 취소(0) 가중, 폭주 방지 상한 4
+  const wt = y.map(v => v===1 ? 1 : wNeg);
+  const wSum = wt.reduce((a,b)=>a+b,0);
   const mu = Array(d).fill(0), sd = Array(d).fill(0);
   for(let j=0;j<d;j++){
     for(let i=0;i<n;i++) mu[j]+=X[i][j]; mu[j]/=n;
@@ -532,12 +566,12 @@ function trainLogistic(X, y, l2=1.0, iters=4000, lr=0.12){
     const gw = Array(d).fill(0); let gb = 0;
     for(let i=0;i<n;i++){
       let z=b; for(let j=0;j<d;j++) z+=w[j]*Z[i][j];
-      const p = 1/(1+Math.exp(-z)), e = p - y[i];
+      const p = 1/(1+Math.exp(-z)), e = (p - y[i]) * wt[i];
       for(let j=0;j<d;j++) gw[j]+=e*Z[i][j];
       gb += e;
     }
-    for(let j=0;j<d;j++) w[j] -= lr*(gw[j]/n + l2*w[j]/n);
-    b -= lr*(gb/n);
+    for(let j=0;j<d;j++) w[j] -= lr*(gw[j]/wSum*n/n + l2*w[j]/n);
+    b -= lr*(gb/wSum);
   }
   return { w, b, mu, sd,
     predict(x){ let z=this.b; for(let j=0;j<this.w.length;j++) z+=this.w[j]*((x[j]-this.mu[j])/this.sd[j]); return 1/(1+Math.exp(-z)); } };
@@ -546,7 +580,7 @@ function crossVal(X, y, k=5){
   const idx = X.map((_,i)=>i);
   // 고정 셔플(재현 가능)
   for(let i=idx.length-1;i>0;i--){ const j=(i*2654435761)%(i+1); [idx[i],idx[j]]=[idx[j],idx[i]]; }
-  let correct=0, tot=0, cCanc=0, nCanc=0, bs=0;
+  let correct=0, tot=0, cCanc=0, nCanc=0, bs=0, cFlew2=0, nFlew2=0;
   for(let f=0; f<k; f++){
     const te = idx.filter((_,i)=>i%k===f), tr = idx.filter((_,i)=>i%k!==f);
     if(tr.length<10 || !te.length) continue;
@@ -557,9 +591,12 @@ function crossVal(X, y, k=5){
       const p = m.predict(X[i]), hit = (p>=0.5?1:0)===y[i];
       tot++; if(hit) correct++; bs += (p-y[i])*(p-y[i]);
       if(y[i]===0){ nCanc++; if(hit) cCanc++; }   // 취소일을 잡아내는지가 핵심
+      else { nFlew2++; if(hit) cFlew2++; }
     }
   }
-  return { acc: tot?correct/tot:null, recallCancel: nCanc?cCanc/nCanc:null, brier: tot?bs/tot:null, n: tot };
+  const rc = nCanc?cCanc/nCanc:null, rf = nFlew2?cFlew2/nFlew2:null;
+  return { acc: tot?correct/tot:null, recallCancel: rc, recallFlew: rf,
+           balAcc: (rc!=null&&rf!=null)?(rc+rf)/2:null, brier: tot?bs/tot:null, n: tot };
 }
 const K = 1.6;
 function prob(s, s0){ if(s==null) return null; return 1/(1+Math.exp(K*(s - s0))); }
@@ -815,7 +852,7 @@ async function buildEnsemble(s0){
       for(const date of Object.keys(idx)){
         const ps = [];
         for(const sfx of suffixes){
-          const p = pFromFeat(features(d.hourly, idx, sun, date, sfx), s0);
+          const p = pFromFeat(features(d.hourly, idx, sun, date, sfx), s0, date);
           if(p!=null) ps.push(p);
         }
         if(ps.length) byDate[date] = ps;
@@ -834,9 +871,9 @@ async function buildEnsemble(s0){
    3) 결합: 리드타임에 따라 예보 ↔ 기후값 가중
    ──────────────────────────────────────────────────────────── */
 // 학습된 모델이 검증을 통과했으면 그걸 쓰고, 아니면 규칙 기반으로 되돌아간다
-function pFromFeat(f, s0){
+function pFromFeat(f, s0, date){
   if(!f) return null;
-  if(STATE.fit && STATE.fit.use) return STATE.fit.model.predict(featVec(f));
+  if(STATE.fit && STATE.fit.use) return STATE.fit.model.predict(featVec(f, date));
   return prob(severity(f), s0);
 }
 function combine(date, F, clim){
@@ -854,13 +891,13 @@ function combine(date, F, clim){
   } else {
     for(const name of F.okModels){
       const v = fitted
-        ? pFromFeat(F.featPerModel[name] && F.featPerModel[name][date], s0)
+        ? pFromFeat(F.featPerModel[name] && F.featPerModel[name][date], s0, date)
         : F.perModel[name][date];
       if(v!=null) ms.push(v);
     }
   }
   let pf = ms.length ? ms.reduce((a,b)=>a+b,0)/ms.length
-         : (fitted ? pFromFeat(F.featByDate[date], s0)
+         : (fitted ? pFromFeat(F.featByDate[date], s0, date)
                    : (F.pAnalysis[date]!=null ? F.pAnalysis[date] : null));
   const spread = ms.length>1 ? Math.max(...ms)-Math.min(...ms) : null;
 
@@ -1265,7 +1302,7 @@ function fitFromLabels(s0){
   for(const [date, rec] of Object.entries(flightLog)){
     if(!["official","scrape","manual"].includes(rec.src)) continue;   // 자동추정은 정답이 아니다
     const f = F.featByDate[date]; if(!f) continue;
-    const x = featVec(f); if(!x) continue;
+    const x = featVec(f, date); if(!x) continue;
     rows.push({ x, y: rec.s==="flew" ? 1 : 0, date, f });
   }
   const n = rows.length;
@@ -1275,21 +1312,29 @@ function fitFromLabels(s0){
   const nFlew = y.filter(v=>v===1).length, nCanc = n - nFlew;
   const base = Math.max(nFlew, nCanc) / n;                            // 무작정 다수쪽 찍기
   // 현행 규칙 기반의 성적
-  let rHit=0, rCancHit=0, rBs=0;
+  let rHit=0, rCancHit=0, rFlewHit=0, rBs=0;
   for(const r of rows){
     const p = prob(severity(r.f), s0);
     if((p>=0.5?1:0) === r.y) rHit++;
     if(r.y===0 && p<0.5) rCancHit++;
+    if(r.y===1 && p>=0.5) rFlewHit++;
     rBs += (p-r.y)*(p-r.y);
   }
-  const rule = { acc: rHit/n, recallCancel: nCanc ? rCancHit/nCanc : null, brier: rBs/n };
+  const rRc = nCanc ? rCancHit/nCanc : null, rRf = nFlew ? rFlewHit/nFlew : null;
+  const rule = { acc: rHit/n, recallCancel: rRc, recallFlew: rRf,
+                 balAcc: (rRc!=null&&rRf!=null)?(rRc+rRf)/2:null, brier: rBs/n };
   // 기준 Brier: 항상 기저확률만 말하는 모델
   const rate = nFlew/n;
   const brierRef = y.reduce((a,v)=>a+(rate-v)*(rate-v),0)/n;
   const cv = crossVal(X, y);
   const model = trainLogistic(X, y);
-  const use = cv.acc != null && cv.acc > Math.max(base, rule.acc) + 0.02;
-  return { use, n, nFlew, nCanc, base, brierRef, rule, cv, model, reason: use ? "학습 모델 채택" : "규칙 기반이 더 낫거나 차이 미미 — 유지" };
+  /* 채택 기준을 정확도가 아니라 "균형 정확도"로 본다.
+     정확도는 다수쪽만 찍어도 66% 나와서, 취소를 잘 잡는 모델이 오히려 손해를 봤다.
+     균형 정확도 = (뜬날 적중률 + 취소일 적중률) / 2. 다수쪽 찍기는 정확히 50%가 된다. */
+  const ruleBal = rule.balAcc != null ? rule.balAcc : 0.5;
+  const use = cv.balAcc != null && cv.balAcc > Math.max(0.5, ruleBal) + 0.02;
+  return { use, n, nFlew, nCanc, base, brierRef, rule, cv, model,
+           reason: use ? "학습 모델 채택 (균형 정확도 기준)" : "규칙 기반이 더 낫거나 차이 미미 — 유지" };
 }
 
 
@@ -1380,10 +1425,10 @@ function renderFit(){
   const pc = v => v==null ? "—" : Math.round(v*100)+"%";
   if(!f.n){ $("#fitbox").innerHTML = `<div class="note warn">채점할 실측 라벨이 없습니다. ${esc(f.reason||"")}</div>`; return; }
   const bz = v => v==null ? "—" : v.toFixed(3);
-  let html = `<div class="scroll"><table><thead><tr><th>방식</th><th>정확도</th><th>취소일 적중률</th><th>Brier ↓</th><th>비고</th></tr></thead><tbody>
-    <tr><td>기저확률만 말하기</td><td>${pc(f.base)}</td><td>—</td><td>${bz(f.brierRef)}</td><td>기준선</td></tr>`;
-  if(f.rule) html += `<tr><td>규칙 기반(현행 기본값)</td><td>${pc(f.rule.acc)}</td><td>${pc(f.rule.recallCancel)}</td><td>${bz(f.rule.brier)}</td><td>규정·문헌 기반 임계값</td></tr>`;
-  if(f.cv)  html += `<tr><td>실측 학습(교차검증)</td><td>${pc(f.cv.acc)}</td><td>${pc(f.cv.recallCancel)}</td><td>${bz(f.cv.brier)}</td><td>${f.cv.n}일 홀드아웃</td></tr>`;
+  let html = `<div class="scroll"><table><thead><tr><th>방식</th><th>정확도</th><th>취소일 적중률</th><th>균형 정확도</th><th>Brier ↓</th><th>비고</th></tr></thead><tbody>
+    <tr><td>기저확률만 말하기</td><td>${pc(f.base)}</td><td>—</td><td>50%</td><td>${bz(f.brierRef)}</td><td>기준선</td></tr>`;
+  if(f.rule) html += `<tr><td>규칙 기반(현행 기본값)</td><td>${pc(f.rule.acc)}</td><td>${pc(f.rule.recallCancel)}</td><td>${pc(f.rule.balAcc)}</td><td>${bz(f.rule.brier)}</td><td>규정·문헌 기반 임계값</td></tr>`;
+  if(f.cv)  html += `<tr><td>실측 학습(교차검증)</td><td>${pc(f.cv.acc)}</td><td>${pc(f.cv.recallCancel)}</td><td>${pc(f.cv.balAcc)}</td><td>${bz(f.cv.brier)}</td><td>${f.cv.n}일 홀드아웃 · 취소 가중</td></tr>`;
   html += `</tbody></table></div>`;
   const rc = f.cv && f.cv.recallCancel;
   html += `<div class="note ${f.use?"":"warn"}"><b>${f.use?"실제 기록으로 학습한 쪽을 씁니다.":"기본 규칙을 그대로 씁니다."}</b>
@@ -1404,8 +1449,10 @@ function renderFit(){
         표본이 ${f.n}일뿐이라 순서는 앞으로 바뀔 수 있습니다.</div>`;
     }
   }
-  html += `<div class="note">표에서 볼 것은 <b>취소일 적중률</b> 하나입니다. 정확도는 "무조건 뜬다"고만 찍어도
-    ${pc(f.base)} 나오기 때문에 의미가 없습니다. Brier는 확률을 맞히는 실력 점수로, 맨 윗줄보다 낮아야 합니다.</div>`;
+  html += `<div class="note">채택은 <b>균형 정확도</b>로 판정합니다 — 뜬날 적중률과 취소일 적중률의 평균이라,
+    "무조건 뜬다"고 찍으면 50%밖에 안 나옵니다. 학습에는 취소일에 약 2배 가중치를 줘서
+    취소를 놓치는 쪽의 벌점을 키웠고, "그 계절치고 얼마나 이례적인 날인가"를 과거 15년에서
+    역산한 <b>평년대비</b> 변수를 추가했습니다.</div>`;
   $("#fitbox").innerHTML = html;
 }
 
