@@ -60,11 +60,11 @@ body{margin:0;overflow-x:hidden;background:var(--bg);color:var(--ink);line-heigh
 
 /* 확률 3분할 */
 .split{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
-  border-radius:14px;overflow:hidden;margin-top:20px}
-.sp{background:var(--panel);padding:13px 14px}
+  border-radius:13px;overflow:hidden;margin-top:14px}
+.sp{background:var(--panel);padding:11px 13px}
 .sp .k{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px}
 .sp .k i{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
-.sp .v{font-size:25px;color:var(--ink);margin-top:5px}
+.sp .v{font-size:21px;color:var(--ink);margin-top:3px}
 .sp .d{font-size:10.5px;color:var(--dim);margin-top:2px}
 .sp.off .v{color:var(--dim)}
 
@@ -123,10 +123,6 @@ body{margin:0;overflow-x:hidden;background:var(--bg);color:var(--ink);line-heigh
 .calhint button{margin-left:auto}
 
 /* 기록 잔디 */
-.grass{display:flex;gap:13px;overflow-x:auto;padding:4px 0 8px}
-.glabel{font-size:10px;color:var(--dim);margin-bottom:5px;font-weight:600}
-.gcells{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;gap:3px}
-.gc{width:13px;height:13px;border-radius:4px;background:var(--tint);cursor:pointer}
 .gc.flew{background:var(--amber)}
 .gc.canc{background:var(--clay)}
 .gc.guess{background:var(--line)}
@@ -159,6 +155,30 @@ table.links td:first-child{white-space:nowrap;font-weight:600}
 .hide{display:none}
 .legend{display:flex;gap:15px;font-size:11px;color:var(--ink2);flex-wrap:wrap;margin-top:12px;align-items:center}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* 내일·모레 곁들이기 */
+.nxrow{display:flex;gap:10px;margin-top:16px}
+.nx{flex:1;background:var(--tint);border-radius:12px;padding:10px 13px;display:flex;
+    align-items:baseline;justify-content:space-between;gap:8px}
+.nl{font-size:12px;color:var(--dim)}
+.nv{font-size:20px}
+
+/* 운항 기록 — 칸을 키웠다 */
+.grid9{display:flex;gap:7px;align-items:flex-start;overflow-x:auto;padding-bottom:6px}
+.gdow{display:grid;grid-template-rows:repeat(7,1fr);gap:4px;padding-top:19px;flex:0 0 auto}
+.gd{height:22px;font-size:10px;color:var(--dim);display:flex;align-items:center}
+.gmain{flex:1;min-width:0}
+.ghead{display:flex;gap:4px;height:15px}
+.ghead .gh{width:22px;font-size:10px;color:var(--dim);flex:0 0 auto}
+.gbody{display:flex;gap:4px}
+.gcol{display:grid;grid-template-rows:repeat(7,1fr);gap:4px}
+.gc{width:22px;height:22px;border-radius:6px;background:var(--tint);cursor:pointer}
+.gc.flew{background:var(--amber)}
+.gc.canc{background:var(--clay)}
+.gc.guess{background:var(--line)}
+.gc.none{background:transparent;cursor:default}
+.gc.today{box-shadow:0 0 0 2px var(--ink)}
+.gc:hover:not(.none){outline:2px solid var(--ink);outline-offset:1px}
 .scroll{overflow-x:auto}
 .g{color:var(--amber)}.m{color:var(--ink2)}.b{color:var(--clay)}
 .bg-g{background:var(--amber)}.bg-m{background:var(--sky3)}.bg-b{background:var(--clay)}
@@ -190,6 +210,12 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
   .plain{padding:16px;border-radius:15px}
   .sect{margin-top:22px}
   .tdays{grid-template-columns:repeat(3,1fr);gap:6px}
+  .nxrow{gap:7px}
+  .nx{padding:9px 11px}
+  .nv{font-size:17px}
+  .gc,.gd{height:20px}
+  .gc{width:20px}
+  .ghead .gh{width:20px}
   .tday{padding:9px 4px;border-radius:11px}
   .tday .pv{font-size:18px}
   .months{grid-template-columns:1fr;gap:16px}
@@ -250,54 +276,51 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
 <div class="verdict" id="verdict"><span class="log">불러오는 중…</span></div>
 
 <div class="sect" id="tripsect">
-  <h2>여행 기간</h2>
-  <p class="lede" id="triplede">달력에서 날짜를 골라 주세요.</p>
+  <h2>내 여행</h2>
+  <p class="lede" id="triplede"></p>
   <div class="plain" id="tripbox"><span class="log">계산 중…</span></div>
 </div>
 
-<div class="sect">
-  <h2>앞으로 16일</h2>
-  <p class="lede">주황은 실제 예보, 점선은 예년 이맘때 평균입니다. 둘이 벌어질수록 이번 주가 평소와 다르다는 뜻이에요.</p>
-  <div class="plain">
+<details id="calsect">
+  <summary>날짜 고르기<span class="hint" id="calHint">달력에서 여행 기간을 정합니다</span></summary>
+  <div class="dbody">
+    <div class="calhint">
+      <span>날짜를 <b>끌거나</b>, 시작일과 종료일을 <b>차례로 누르세요</b>. 같은 날을 두 번 누르면 하루만 잡힙니다.</span>
+      <button class="sm" id="btnClearTrip">지우기</button>
+    </div>
+    <div class="months" id="months"></div>
+    <div class="legend">
+      <span><i style="background:var(--ink2);opacity:.4;border-radius:50%"></i>점 = 실제 예보</span>
+      <span><i style="box-shadow:inset 0 0 0 2px var(--plum);background:var(--tint)"></i>내 여행</span>
+    </div>
+  </div>
+</details>
+
+<details>
+  <summary>앞으로 16일<span class="hint" id="chartHint"></span></summary>
+  <div class="dbody">
     <div class="chartwrap">
       <svg class="chart" id="chart"></svg>
       <div class="tip" id="tip"></div>
     </div>
     <div class="lgd">
-      <span><i style="background:var(--amber)"></i>예보 종합</span>
-      <span><i style="background:var(--ink2);opacity:.55"></i>예년 평균</span>
+      <span><i style="background:var(--amber)"></i>예보</span>
+      <span><i style="background:var(--ink2);opacity:.55"></i>예년 이맘때</span>
     </div>
     <div class="note" id="fcnote"></div>
   </div>
-</div>
+</details>
 
-<div class="sect">
-  <h2>3개월 달력</h2>
-  <p class="lede">여행 기간을 여기서 정합니다. 숫자는 뜰 가능성(%)이고, 진할수록 좋은 날입니다.</p>
-  <div class="plain">
-    <div class="calhint">
-      <span>날짜를 <b>끌거나</b>, 시작일과 종료일을 <b>차례로 누르세요</b>.</span>
-      <button class="sm" id="btnClearTrip">기간 지우기</button>
-    </div>
-    <div class="months" id="months"></div>
-    <div class="legend">
-      <span><i style="background:var(--ink2);opacity:.4;border-radius:50%"></i>점 = 실제 예보 반영</span>
-      <span><i style="box-shadow:inset 0 0 0 2px var(--plum);background:var(--tint)"></i>여행 기간</span>
-    </div>
-  </div>
-</div>
-
-<div class="sect">
 <details>
   <summary>운항 기록<span class="hint" id="logStat"></span></summary>
   <div class="dbody">
     <div class="note" style="margin-top:0">
-      <b>주황 = 떴음</b>, <b>붉은색 = 취소</b>, 회색은 날씨로 찍어본 값입니다.
-      칸을 누르면 <b>떴음 → 취소 → 지움</b>으로 고칠 수 있고, 고칠수록 예측이 정확해집니다.
+      실제로 떴는지 안 떴는지 쌓아두는 곳이에요. <b>주황은 뜬 날, 붉은색은 안 뜬 날</b>, 회색은 날씨만 보고 짐작한 날입니다.
+      칸을 누르면 <b>뜸 → 안 뜸 → 지움</b> 순으로 바뀌고, 고칠수록 예측이 정확해집니다.
     </div>
     <div class="row" style="margin:14px 0 12px">
-      <button id="btnScrape">오늘 상태 읽어오기</button>
-      <button id="btnBackfill">빈 날짜 채우기</button>
+      <button id="btnScrape">오늘 확인</button>
+      <button id="btnBackfill">빈 날 채우기</button>
       <button id="btnExport">저장</button>
       <button id="btnImport">불러오기</button>
       <input type="file" id="fileImport" accept=".json" class="hide">
@@ -305,43 +328,43 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
     <div id="logcal"></div>
     <div class="legend">
       <span><i style="background:var(--amber)"></i>떴음</span>
-      <span><i style="background:var(--clay)"></i>취소</span>
-      <span><i style="background:var(--line)"></i>추정</span>
-      <span><i style="background:var(--tint)"></i>기록 없음</span>
+      <span><i style="background:var(--clay)"></i>안 떴음</span>
+      <span><i style="background:var(--line)"></i>짐작</span>
+      <span><i style="background:var(--tint)"></i>모름</span>
     </div>
     <div class="note warn" id="scrapenote">
-      브라우저 보안 때문에 다른 사이트를 직접 읽지 못합니다. 중계 서버를 거쳐 시도하고, 막히면 날씨로 추정합니다.
+      다른 사이트를 브라우저가 직접 못 읽어서 중계 서버를 거칩니다. 막히면 날씨로 짐작해 채웁니다.
     </div>
   </div>
 </details>
 
 <details>
-  <summary>이 앱이 얼마나 맞는가<span class="hint" id="fitHint"></span></summary>
+  <summary>얼마나 맞나<span class="hint" id="fitHint"></span></summary>
   <div class="dbody"><div id="fitbox"><span class="log">계산 대기 중…</span></div></div>
 </details>
 
 <details>
-  <summary>달마다 잘 맞는지 대조<span class="hint" id="monHint"></span></summary>
+  <summary>달마다 얼마나 맞나<span class="hint" id="monHint"></span></summary>
   <div class="dbody"><div class="scroll" id="monthlybox"><span class="log">계산 대기 중…</span></div></div>
 </details>
 
 <details>
-  <summary>다른 사이트와 비교<span class="hint" id="cmpHint"></span></summary>
+  <summary>다른 사이트는 뭐라나<span class="hint" id="cmpHint"></span></summary>
   <div class="dbody"><div id="cmpbox"><span class="log">불러오는 중…</span></div></div>
 </details>
 
 <details>
   <summary>참고 사이트<span class="hint">공식 판정처와 다른 예보들</span></summary>
   <div class="dbody">
-    <p class="note" style="margin-top:0">이 앱은 추정치입니다. <b>실제 운항 여부는 첫 번째 링크가 최종 판정</b>입니다.
-      출발 전날 밤과 당일 새벽에 직접 확인하세요.</p>
+    <p class="note" style="margin-top:0">여기 숫자는 어디까지나 짐작이에요. <b>진짜 판정은 맨 위 링크</b>에서 납니다.
+      떠나기 전날 밤과 당일 새벽에 한 번씩 보세요.</p>
     <table class="links"><tbody>
       <tr><td><a href="https://shmkapadokya.kapadokya.edu.tr/" target="_blank" rel="noopener">SHM Kapadokya</a></td>
-          <td><span class="tag ok">공식</span> 매일 새벽 섹터별 운항 판정을 내리는 곳. 근거 METAR도 함께 공개합니다.</td></tr>
+          <td><span class="tag ok">공식</span> 매일 새벽 구역별로 운항 여부를 정하는 곳. 근거가 된 관측값도 같이 올라옵니다.</td></tr>
       <tr><td><a href="https://balloonstatus.com/cappadocia/today/" target="_blank" rel="noopener">Balloon Status</a></td>
-          <td>오늘·내일 상태와 7일 예보. 지난 60일 기록도 공개해 이 앱의 초기 데이터로 썼습니다.</td></tr>
+          <td>오늘·내일 상태와 7일 예보. 지난 60일 기록도 공개해서 이 앱 초기 데이터로 썼어요.</td></tr>
       <tr><td><a href="https://epicturkeytravel.com/cappadocia-balloon-flight-status/" target="_blank" rel="noopener">Epic Turkey Travel</a></td>
-          <td>4월부터 매일 기록 중. 월별 실제 운항률과 상공 풍속을 공개합니다.</td></tr>
+          <td>4월부터 매일 기록 중. 월별 실제 운항률과 상공 바람을 공개합니다.</td></tr>
       <tr><td><a href="https://toursce.com/cappadocia-hot-air-balloon-flight-status-cancellation-checker/" target="_blank" rel="noopener">ToursCE</a></td>
           <td>15일 취소 위험도. 다른 곳과 자주 어긋나니 참고만 하세요.</td></tr>
       <tr><td><a href="https://hezarfen.mgm.gov.tr/Kapadokya/khcpdkwrfgram.aspx" target="_blank" rel="noopener">터키 기상청 AIRGRAM</a></td>
@@ -356,22 +379,22 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
   <summary>용어 설명<span class="hint">어려운 말이 나오면 여기</span></summary>
   <div class="dbody">
     <table><tbody>
-      <tr><td style="width:118px"><b>예년 평균</b></td><td>지난 15년간 같은 날짜의 날씨를 모아 계산한 값. 예보가 아니라 "이맘때는 대개 이랬다"입니다.</td></tr>
-      <tr><td><b>예보 종합</b></td><td>유럽 기상센터가 조건을 조금씩 바꿔 51번 돌린 예보 중 몇 번이 "뜰 수 있다"고 나오는지.</td></tr>
-      <tr><td><b>하이브리드</b></td><td>가까운 날은 예보를, 먼 날은 예년 평균을 더 믿도록 섞은 값. 화면의 큰 숫자가 이것입니다.</td></tr>
-      <tr><td><b>실질 독립 일수</b></td><td>날씨는 며칠씩 몰려 다닙니다. 5일 여행이어도 서로 다른 기회는 2~3번뿐일 수 있는데, 그 실제 기회 수입니다.</td></tr>
-      <tr><td><b>저층 제트</b></td><td>땅은 잔잔한데 300~800m 상공에만 강한 바람이 흐르는 현상. 이륙장에서는 완벽해 보이는데 못 뜹니다.</td></tr>
-      <tr><td><b>이슬점차</b></td><td>기온과 이슬점의 차이. 2도 아래로 좁아지면 안개가 끼기 쉽습니다.</td></tr>
+      <tr><td style="width:112px"><b>예년 이맘때</b></td><td>지난 15년간 같은 날짜의 날씨를 모은 값. 예보가 아니라 "이맘때는 보통 이랬다"입니다.</td></tr>
+      <tr><td><b>예보</b></td><td>유럽 기상센터가 조건을 조금씩 바꿔 51번 돌린 결과 중 몇 번이 "뜰 만하다"고 나오는지.</td></tr>
+      <tr><td><b>둘을 섞은 값</b></td><td>가까운 날은 예보를, 먼 날은 예년을 더 믿도록 섞었어요. 큰 숫자가 이겁니다.</td></tr>
+      <tr><td><b>진짜 기회</b></td><td>날씨는 며칠씩 몰려 다녀요. 닷새를 잡아도 서로 다른 기회는 두세 번뿐일 수 있는데, 그 실제 횟수입니다.</td></tr>
+      <tr><td><b>저층 제트</b></td><td>땅은 잔잔한데 300~800m 상공만 바람이 센 날. 이륙장에서는 완벽해 보이는데 못 뜹니다.</td></tr>
+      <tr><td><b>이슬점차</b></td><td>기온과 이슬점의 차이. 2도 아래로 좁아지면 안개가 끼기 쉬워요.</td></tr>
       <tr><td><b>역전층</b></td><td>위가 아래보다 따뜻한 공기층. 이륙엔 좋지만 안개를 가두고 그 위에 강풍을 얹기도 합니다.</td></tr>
-      <tr><td><b>취소일 적중률</b></td><td>실제로 못 뜬 날 중 이 앱이 미리 "위험하다"고 말한 비율. <b>가장 중요한 숫자입니다.</b></td></tr>
+      <tr><td><b>안 뜬 날 적중률</b></td><td>실제로 못 뜬 날 중 이 앱이 미리 "위험하다"고 한 비율. <b>제일 중요한 숫자예요.</b></td></tr>
       <tr><td><b>Brier</b></td><td>확률을 맞히는 실력 점수. 낮을수록 좋고, "무조건 뜬다"고 찍는 것보다 낮아야 쓸모가 있습니다.</td></tr>
-      <tr><td><b>SHGM</b></td><td>터키 민간항공청. 매일 새벽 이곳이 운항 여부를 최종 결정합니다.</td></tr>
+      <tr><td><b>SHGM</b></td><td>터키 민간항공청. 매일 새벽 여기서 운항 여부를 최종 결정합니다.</td></tr>
     </tbody></table>
   </div>
 </details>
 
 <details>
-  <summary>설정 · 상태<span class="hint" id="diagHint"></span></summary>
+  <summary>설정<span class="hint" id="diagHint"></span></summary>
   <div class="dbody">
     <div class="row" style="align-items:flex-end;margin-bottom:14px">
       <label>과거 몇 년치<input type="number" id="cfgYears" min="5" max="30" step="1" style="width:76px"></label>
@@ -387,9 +410,8 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
     <div class="scroll"><table id="diag"><thead><tr><th>단계</th><th>상태</th><th>비고</th></tr></thead><tbody></tbody></table></div>
     <div class="log" id="conlog" style="margin-top:12px"></div>
     <div class="note warn">
-      <b>이 앱이 못 하는 일.</b> 날씨가 멀쩡해도 취소되는 날이 있습니다. 항공청 판단, 슬롯 제한, 사고 후 중단,
-      업체 사정은 날씨로 예측할 수 없습니다. 실제로 지상 2kt·시정 40km인 날에도 전 섹터가 닫힌 적이 있습니다.
-      그래서 확률은 아무리 좋아도 95%에서 자릅니다. 여기 숫자는 <b>참고용 추정</b>이지 공식 발표가 아닙니다.
+      <b>못 맞히는 것도 있어요.</b> 날씨가 멀쩡해도 안 뜨는 날이 있습니다. 항공청 판단이나 업체 사정은 날씨로 알 수 없거든요.
+      실제로 바람 2kt에 시정 40km인 날에도 전 구역이 닫힌 적이 있어요. 그래서 아무리 좋아도 95%에서 자릅니다.
     </div>
     <div class="lede" style="margin:13px 0 0;font-size:11px">기후 계산 <span class="yrs2">15</span>년 · <span id="yrs"></span></div>
   </div>
@@ -1124,56 +1146,66 @@ function tripAccuracy(days){
 }
 
 function renderTrip(){
-  const box = $("#tripbox"), lede = $("#triplede");
+  const box = $("#tripbox"), lede = $("#triplede"), cal = $("#calsect");
   const t = tripOutlook();
   if(!t){
-    if(lede) lede.textContent = "아래 3개월 달력에서 날짜를 골라 주세요.";
-    box.innerHTML = `<div class="empty">달력에서 날짜를 끌거나<br>시작일과 종료일을 차례로 누르면 여기에 계산됩니다.</div>`;
+    if(lede) lede.textContent = "";
+    box.innerHTML = `<div class="empty">아직 여행 날짜를 안 정했어요.<br>
+      아래 <b>날짜 고르기</b>를 열어 달력에서 골라주세요.</div>`;
+    if(cal) cal.open = true;                       // 날짜가 없으면 달력을 펴둔다
     return;
   }
+  if(cal && !cal.dataset.touched) cal.open = false;  // 정해졌으면 접어둔다
   const pc2 = p => p==null ? "—" : Math.round(p*100)+"%";
-  if(lede) lede.textContent = `${D.label(t.days[0])} ~ ${D.label(t.days[t.days.length-1])} · ${t.days.length}일`;
+  const N = t.days.length;
+  const NAMES = ["","하루","이틀","사흘","나흘","닷새","엿새","이레","여드레","아흐레","열흘"];
+  const nm = NAMES[N] || (N+"일");
+  if(lede) lede.textContent = `${D.label(t.days[0])} ~ ${D.label(t.days[N-1])} · ${nm}`;
 
-  const bar = p => p==null ? "var(--line)" : (p>=.6 ? "var(--amber)" : p>=.4 ? "var(--sky3)" : "var(--clay)");
   const cells = t.per.map(d=>`<div class="tday">
       <div class="dt">${D.label(d.date)}</div>
       <div class="pv num">${pc2(d.p)}</div>
-      <div class="bb"><i style="width:${d.p?Math.round(d.p*100):0}%;background:${bar(d.p)}"></i></div>
+      <div class="bb"><i style="width:${d.p?Math.round(d.p*100):0}%;background:${barColor(d.p)}"></i></div>
       <div class="kd">${d.kind==="clim"?"예년":"예보"}</div>
     </div>`).join("");
 
   const acc = tripAccuracy(t.days);
   let chips = "";
-  if(t.neff != null){
+  if(t.neff != null && N > 1){
     chips += `<span class="chip">하루 평균 <b>${pc2(t.pBar)}</b></span>`;
-    chips += `<span class="chip">실질 독립 기회 <b>${t.neff.toFixed(1)}일</b> / ${t.days.length}일</span>`;
+    chips += `<span class="chip">진짜 기회 <b>${t.neff.toFixed(1)}번</b></span>`;
   }
   if(acc){
-    const lvl = acc.mae<=0.08 ? "잘 맞는 편" : acc.mae<=0.15 ? "보통" : "잘 안 맞는 편";
-    chips += `<span class="chip">이 시기 정확도 <b>${esc(lvl)}</b> · ±${Math.round(acc.mae*100)}%p</span>`;
+    const lvl = acc.mae<=0.08 ? "잘 맞는 편" : acc.mae<=0.15 ? "그럭저럭" : "잘 안 맞는 편";
+    chips += `<span class="chip">이맘때 정확도 <b>${esc(lvl)}</b></span>`;
   }
+
+  const head = N === 1
+    ? `이날 뜰 가능성`
+    : `${nm} 중 <b>하루라도</b> 뜰 가능성`;
+  const tail = N === 1
+    ? `하루뿐이라 여유가 없어요. 가능하면 하루 더 잡아두는 편이 마음이 편합니다.`
+    : `날씨는 며칠씩 몰려 다녀서, ${nm}을 잡아도 진짜 기회는 <b>${t.neff==null?"—":t.neff.toFixed(1)}번</b> 정도예요.
+       취소되면 보통 다음 날로 넘겨주니, <b>일정 앞쪽에 잡을수록</b> 다시 해볼 날이 남습니다.`;
 
   box.innerHTML = `
     <div style="text-align:center">
-      <div class="vhead">${t.days.length}일 중 <b>최소 하루</b>는 뜰 가능성</div>
-      <div class="vnum num ${cls(t.atLeastOne)}" style="font-size:60px;margin-top:4px">${pc2(t.atLeastOne)}</div>
+      <div class="vhead">${head}</div>
+      <div class="vnum num ${cls(t.atLeastOne)}" style="font-size:58px;margin-top:4px">${pc2(t.atLeastOne)}</div>
     </div>
     <div class="tdays">${cells}</div>
-    <div class="chips">${chips}</div>
-    <div class="note">
-      날씨는 며칠씩 몰려 다닙니다. ${t.days.length}일을 잡아도 서로 다른 기회는
-      <b>${t.neff==null?"—":t.neff.toFixed(1)}번</b>뿐이라, 확률을 단순히 곱한 값(${pc2(t.indep)})보다 낮게 잡았습니다.
-      벌룬 투어는 취소되면 보통 다음 날로 넘겨주니 <b>일정 앞쪽에 예약할수록</b> 다시 시도할 날이 남습니다.
-    </div>`;
+    ${chips ? `<div class="chips">${chips}</div>` : ""}
+    <div class="note">${tail}</div>`;
 }
 
 /* ── 오늘의 판정: 하나의 답 + 어디서 나온 숫자인지 3분할 ── */
 const WORD = p => p==null ? ["—",""]
-  : p>=.8 ? ["아주 좋음","오늘 같은 날이면 거의 뜹니다"]
-  : p>=.6 ? ["괜찮음","웬만하면 뜨는 조건입니다"]
-  : p>=.4 ? ["반반","전날 밤에 꼭 확인하세요"]
-  : p>=.2 ? ["나쁨","취소될 가능성이 큽니다"]
-  :         ["아주 나쁨","오늘은 거의 못 뜹니다"];
+  : p>=.8 ? ["거의 확실","이런 날이면 웬만해선 떠요."]
+  : p>=.6 ? ["괜찮음","무난하게 뜰 만한 날이에요."]
+  : p>=.4 ? ["반반","애매해요. 전날 밤에 꼭 확인하세요."]
+  : p>=.2 ? ["어려움","안 뜰 가능성이 커요."]
+  :         ["거의 안 뜸","오늘은 기대 안 하시는 게 좋아요."];
+const barColor = p => p==null ? "var(--line)" : (p>=.6 ? "var(--amber)" : p>=.4 ? "var(--sky3)" : "var(--clay)");
 
 function renderBig(){
   const { clim, F } = STATE;
@@ -1182,32 +1214,35 @@ function renderBig(){
   const rec = flightLog[TODAY];
   const [w, line] = WORD(p);
   const pc = capP(c && c.pc), pf = capP(c && c.pf);
+  const DOW = ["일","월","화","수","목","금","토"];
 
-  let head = `오늘 ${D.label(TODAY)}`;
   let sub = line;
   if(rec && ["official","scrape","manual"].includes(rec.src)){
-    sub = rec.s==="flew" ? "실제로 <b>떴습니다</b>. 아래 숫자는 오늘 아침 조건으로 계산한 값입니다."
-                         : "실제로 <b>취소됐습니다</b>. 아래 숫자는 오늘 아침 조건으로 계산한 값입니다.";
+    sub = rec.s==="flew" ? "오늘 아침엔 <b>떴어요</b>." : "오늘 아침엔 <b>못 떴어요</b>.";
   }
 
+  // 내일·모레는 작게 곁들인다
+  const nxt = [1,2].map(i=>{
+    const k = D.add(TODAY,i);
+    const cc = F ? combine(k, F, clim) : null;
+    const pp = capP(cc && cc.p);
+    return `<div class="nx"><span class="nl">${i===1?"내일":"모레"} ${D.label(k)}</span>
+      <span class="nv num ${cls(pp)}">${pp==null?"—":Math.round(pp*100)+"%"}</span></div>`;
+  }).join("");
+
   $("#verdict").innerHTML = `
-    <div class="vhead">${esc(head)}</div>
+    <div class="vhead">오늘 ${D.label(TODAY)} (${DOW[D.dow(TODAY)]})</div>
     <div class="vmain">
       <span class="vnum num ${cls(p)}">${p==null?"—":Math.round(p*100)+"%"}</span>
       <span class="vword ${cls(p)}">${esc(w)}</span>
     </div>
     <div class="vsub">${sub}</div>
-    <div class="meter"><i style="width:${p?Math.round(p*100):0}%;background:${p==null?"var(--line)":(p>=.6?"var(--amber)":p>=.4?"var(--sky3)":"var(--clay)")}"></i></div>
+    <div class="meter"><i style="width:${p?Math.round(p*100):0}%;background:${barColor(p)}"></i></div>
+    <div class="nxrow">${nxt}</div>
     <div class="split">
-      <div class="sp"><div class="k"><i style="background:var(--ink2);opacity:.5"></i>예년 평균</div>
-        <div class="v num">${pc==null?"—":Math.round(pc*100)+"%"}</div>
-        <div class="d">15년 같은 날짜</div></div>
-      <div class="sp ${pf==null?"off":""}"><div class="k"><i style="background:var(--amber)"></i>실제 예보</div>
-        <div class="v num">${pf==null?"—":Math.round(pf*100)+"%"}</div>
-        <div class="d">${pf==null?"예보 범위 밖":(c&&c.n>1?`${c.n}개 시나리오`:"단일 모델")}</div></div>
-      <div class="sp"><div class="k"><i style="background:var(--ink)"></i>하이브리드</div>
-        <div class="v num">${p==null?"—":Math.round(p*100)+"%"}</div>
-        <div class="d">${c&&c.kind==="clim"?"예년만 사용":`예보 ${Math.round((c&&c.w!=null?c.w:1)*100)}% 반영`}</div></div>
+      <div class="sp"><div class="k">예년 이맘때</div><div class="v num">${pc==null?"—":Math.round(pc*100)+"%"}</div></div>
+      <div class="sp ${pf==null?"off":""}"><div class="k">예보</div><div class="v num">${pf==null?"—":Math.round(pf*100)+"%"}</div></div>
+      <div class="sp"><div class="k">둘을 섞은 값</div><div class="v num">${p==null?"—":Math.round(p*100)+"%"}</div></div>
     </div>`;
 }
 
@@ -1278,10 +1313,13 @@ function renderStrip(){
   });
   svg.addEventListener("pointerleave", ()=>{ tip.style.opacity = 0; cross.classList.add("hide"); });
 
+  { const lo = Math.min(...okP.map(p=>p.p)), hi = Math.max(...okP.map(p=>p.p));
+    const el = $("#chartHint");
+    if(el && okP.length) el.textContent = `${Math.round(lo*100)}~${Math.round(hi*100)}% 사이를 오갑니다`; }
   const n = STATE.ens ? STATE.ens.members : F.okModels.length;
   $("#fcnote").innerHTML = STATE.ens
-    ? `유럽 기상센터가 조건을 조금씩 바꿔 <b>${n}번</b> 돌린 예보를 씁니다. 그중 몇 번이 "뜰 수 있다"고 나오는지가 주황 선입니다.`
-    : (n ? `기상 모델 <b>${n}개</b>를 종합했습니다.` : `모델을 하나밖에 못 불러왔습니다. 값이 평소보다 거칠 수 있습니다.`);
+    ? `유럽 기상센터가 조건을 조금씩 바꿔 <b>${n}번</b> 돌린 결과예요. 그중 몇 번이 "뜰 만하다"고 나오는지가 주황 선입니다.`
+    : (n ? `기상 모델 <b>${n}개</b>를 섞었어요.` : `모델을 하나밖에 못 불러왔어요. 값이 평소보다 거칠 수 있습니다.`);
 }
 
 function monthGrid(year, month, cellFn, opt){
@@ -1306,7 +1344,7 @@ function monthGrid(year, month, cellFn, opt){
 /* ── 달력에서 여행 기간 고르기 ──
    마우스는 끌어서, 손가락은 시작일·종료일을 차례로 눌러서 정한다.
    터치에서 드래그를 잡으면 세로 스크롤이 막혀버리므로 입력 방식에 따라 나눈다. */
-let SELA = null, SELB = null, DRAG = false;
+let SELA = null, SELB = null, DRAG = false, MOVED = false, ANCHORED = false;
 
 function renderMonths(){
   const { clim, F } = STATE;
@@ -1352,7 +1390,7 @@ function commitTrip(a, b){
   const si = $("#cfgTripS"), ei = $("#cfgTripE");
   if(si) si.value = cfg.tripStart;
   if(ei) ei.value = cfg.tripEnd;
-  SELA = SELB = null;
+  SELA = SELB = null; ANCHORED = false;
   renderMonths(); renderTrip(); renderStrip();
 }
 
@@ -1361,61 +1399,70 @@ function wireCalendar(){
   if(!host) return;
   const keyAt = el => { const c = el && el.closest ? el.closest(".c.sel") : null; return c ? c.dataset.k : null; };
 
+  /* 규칙 하나로 통일. 처음 누른 날이 시작, 두 번째 누른 날이 끝.
+     같은 날을 두 번 누르면 하루짜리가 된다 — 예전엔 이게 안 잡혀 당일치기를 못 골랐다. */
+  const tap = k => {
+    if(!ANCHORED){ SELA = k; SELB = null; ANCHORED = true; renderMonths(); }
+    else commitTrip(SELA, k);
+  };
+
   host.onpointerdown = e => {
     const k = keyAt(e.target); if(!k) return;
-    if(e.pointerType === "mouse"){
-      DRAG = true; SELA = k; SELB = k; renderMonths(); e.preventDefault();
-    } else {
-      // 터치: 첫 탭이 시작일, 두 번째 탭이 종료일
-      if(!SELA){ SELA = k; SELB = null; renderMonths(); }
-      else { commitTrip(SELA, k); }
-    }
+    if(e.pointerType === "mouse"){ DRAG = true; MOVED = false; if(!ANCHORED){ SELA = k; SELB = null; } }
+    else tap(k);
   };
   host.onpointermove = e => {
     if(!DRAG || e.pointerType !== "mouse") return;
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const k = keyAt(el);
-    if(k && k !== SELB){ SELB = k; renderMonths(); }
+    const k = keyAt(document.elementFromPoint(e.clientX, e.clientY));
+    if(k && k !== SELB){ SELB = k; MOVED = true; ANCHORED = true; renderMonths(); }
   };
-  const finish = () => {
+  host.onpointerup = e => {
     if(!DRAG) return;
     DRAG = false;
-    if(SELA && SELB && SELA !== SELB) commitTrip(SELA, SELB);
-    else { SELB = null; renderMonths(); }   // 제자리 클릭이면 시작일만 찍어두고 기다린다
+    if(MOVED && SELB && SELB !== SELA){ commitTrip(SELA, SELB); return; }
+    SELB = null;
+    const k = keyAt(e.target);
+    if(k) tap(k);
   };
-  host.onpointerup = finish;
-  host.onpointerleave = () => { if(DRAG){ DRAG = false; SELB = null; renderMonths(); } };
-  host.onclick = e => {
-    if(DRAG) return;
-    const k = keyAt(e.target); if(!k) return;
-    if(SELA && !SELB) commitTrip(SELA, k);   // 마우스 두 번 클릭 방식도 지원
-  };
+  host.onpointercancel = () => { DRAG = false; SELB = null; renderMonths(); };
 }
 
 /* 운항 기록은 월 달력 3개를 쌓으면 화면을 다 잡아먹는다.
    14px 짜리 칸을 요일 7행으로 세워 90일을 한 줌에 담는다. */
 function renderLog(){
-  const start = D.add(TODAY, -104);
-  const MN = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
-  const months = [];
-  let cur = null;
+  const WEEKS = 9;                                  // 최근 아홉 주만. 예전엔 15주라 칸이 너무 작았다
+  const start = D.add(TODAY, -(WEEKS*7 - 1 + D.dow(TODAY)));
+  const DOW = ["일","","화","","목","","토"];
+  const cols = [];
+  let col = null;
   for(let k=start; k<=TODAY; k=D.add(k,1)){
-    const mo = k.slice(0,7);
-    if(!cur || cur.mo !== mo){ cur = { mo, label: MN[+k.slice(5,7)-1], cells: [] }; months.push(cur); }
-    if(!cur.cells.length){ for(let i=0;i<D.dow(k);i++) cur.cells.push(null); }   // 요일 맞추기
-    cur.cells.push(k);
+    if(!col || D.dow(k) === 0){ col = { first:k, cells:Array(7).fill(null) }; cols.push(col); }
+    col.cells[D.dow(k)] = k;
   }
-  $("#logcal").innerHTML = `<div class="grass">` + months.map(m =>
-    `<div class="gmonth"><div class="glabel">${m.label}</div><div class="gcells">` +
-    m.cells.map(k => {
-      if(!k) return `<div class="gc none"></div>`;
-      const r = flightLog[k];
-      const guess = r && r.src === "auto";
-      let c = "gc", tip = "기록 없음";
-      if(r && !guess){ c += r.s==="flew" ? " flew" : " canc"; tip = r.s==="flew" ? "떴음" : "취소"; }
-      else if(guess){ c += " guess"; tip = "추정: " + (r.s==="flew" ? "떴을 듯" : "취소였을 듯"); }
-      return `<div class="${c} c on" data-k="${k}" title="${D.label(k)} · ${tip}"></div>`;
-    }).join("") + `</div></div>`).join("") + `</div>`;
+  const MN = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+  let head = "";
+  cols.forEach((c,i)=>{
+    const m = +c.first.slice(5,7);
+    const prev = i ? +cols[i-1].first.slice(5,7) : null;
+    head += `<div class="gh">${m!==prev ? MN[m-1] : ""}</div>`;
+  });
+
+  const body = cols.map(c => `<div class="gcol">` + c.cells.map(k => {
+    if(!k) return `<div class="gc none"></div>`;
+    const r = flightLog[k];
+    const guess = r && r.src === "auto";
+    let cl = "gc", tip = "모름";
+    if(r && !guess){ cl += r.s==="flew" ? " flew" : " canc"; tip = r.s==="flew" ? "떴음" : "안 떴음"; }
+    else if(guess){ cl += " guess"; tip = "짐작: " + (r.s==="flew" ? "떴을 듯" : "안 떴을 듯"); }
+    if(k === TODAY) cl += " today";
+    return `<div class="${cl}" data-k="${k}" title="${D.label(k)} · ${tip}"></div>`;
+  }).join("") + `</div>`).join("");
+
+  $("#logcal").innerHTML =
+    `<div class="grid9">
+       <div class="gdow">${DOW.map(d=>`<div class="gd">${d}</div>`).join("")}</div>
+       <div class="gmain"><div class="ghead">${head}</div><div class="gbody">${body}</div></div>
+     </div>`;
 
   $("#logcal").querySelectorAll(".gc[data-k]").forEach(el => {
     el.onclick = () => {
@@ -1459,8 +1506,8 @@ function renderStat(){
   const flew = ks.filter(k=>flightLog[k].s==="flew").length;
   const conf = off.length, cf = ks.filter(k=>["official","scrape","manual"].includes(flightLog[k].src) && flightLog[k].s==="flew").length;
   $("#logStat").textContent = conf
-    ? `실제 확인 ${conf}일 (떴음 ${cf} · 취소 ${conf-cf}) · 추정 ${ks.length-conf}일`
-    : "아직 기록 없음";
+    ? `확인된 ${conf}일 중 ${cf}일 떴어요`
+    : "아직 기록이 없어요";
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -1509,13 +1556,13 @@ async function scrapeToday(opt){
   if(flew === canc){
     // 찬반 동수면 찍지 않는다. 틀린 정답은 학습을 망친다.
     if(!quiet) $("#scrapenote").innerHTML =
-      `<b>사이트 의견이 갈립니다:</b> ${esc(votes.map(v=>v.site+"="+v.v).join(" / "))}. 직접 확인 후 칸을 눌러 기록해 주세요.`;
+      `사이트마다 말이 달라요 (${esc(votes.map(v=>v.site+"="+v.v).join(" / "))}). 직접 확인하고 칸을 눌러 넣어주세요.`;
     return;
   }
   flightLog[TODAY] = { s: flew>canc ? "flew":"cancelled", src:"scrape", note: votes.map(v=>v.site+":"+v.v).join(", ") };
   save(LSK.log, flightLog); renderLog(); refit();
   if(!quiet) $("#scrapenote").innerHTML = agree
-    ? `오늘 <b>${flew?"운항":"취소"}</b>로 기록했습니다 (${esc(votes.map(v=>v.site).join(", "))}).`
+    ? `오늘은 <b>${flew?"떴다":"안 떴다"}</b>고 기록했어요 (${esc(votes.map(v=>v.site).join(", "))}).`
     : `<b>사이트 간 불일치:</b> ${esc(votes.map(v=>v.site+"="+v.v).join(" / "))}. 다수결로 기록했지만 직접 확인을 권합니다.`;
 }
 
@@ -1530,7 +1577,7 @@ function backfill(){
     n++;
   }
   save(LSK.log, flightLog); renderLog(); refit();
-  con(`자동 추정 ${n}일 채움 (실측 아님 — 검증용 정답으로는 약함)`);
+  con(`빈 날 ${n}일을 날씨로 짐작해 채웠어요 (실제 확인은 아닙니다)`);
 }
 
 /* ── 내보내기/가져오기 ── */
@@ -1562,8 +1609,9 @@ $("#fileImport").onchange = e => {
 let _rz;
 addEventListener("resize", () => { clearTimeout(_rz); _rz = setTimeout(() => { if(STATE.F) renderStrip(); }, 180); });
 $("#btnRefresh").onclick = () => boot(false);
+{ const cs = $("#calsect"); if(cs) cs.addEventListener("toggle", () => { if(cs.open) cs.dataset.touched = "1"; }); }
 $("#btnClearTrip").onclick = () => {
-  cfg.tripStart = ""; cfg.tripEnd = ""; SELA = SELB = null;
+  cfg.tripStart = ""; cfg.tripEnd = ""; SELA = SELB = null; ANCHORED = false;
   save(LSK.cfg, cfg);
   const si=$("#cfgTripS"), ei=$("#cfgTripE"); if(si) si.value=""; if(ei) ei.value="";
   renderMonths(); renderTrip(); renderStrip();
@@ -1875,11 +1923,11 @@ async function boot(force){
   const triedKey = "cb.autoscrape";
   if(!confirmed && load(triedKey, "") !== TODAY){
     save(triedKey, TODAY);
-    diag("오늘 상태 자동 확인", null, "사이트 조회 중…");
+    diag("오늘 상태 확인", null, "사이트 보는 중…");
     try{ await scrapeToday({ quiet:true }); }catch(e){}
     const after = flightLog[TODAY];
     diagSet(diagRows.length-1, !!after,
-      after ? `${after.s==="flew"?"떴음":"취소"} 으로 기록` : "판독 실패 — 서버 수집을 기다립니다");
+      after ? `${after.s==="flew"?"떴음":"안 떴음"}으로 기록` : "못 읽었어요 — 서버 수집을 기다립니다");
   }
 
   fillHints();
