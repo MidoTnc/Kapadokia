@@ -6,208 +6,201 @@
 <meta name="color-scheme" content="light dark">
 <title>카파도키아 벌룬 확률</title>
 <style>
-/* ─────────────────────────────────────────────
-   카파도키아 새벽 — 응회암·모래·일출빛
-   ───────────────────────────────────────────── */
+/* ── 카파도키아 새벽. 색은 보조, 숫자는 잉크로 읽는다 ── */
 :root{
-  --bg:#fbf6ef; --bg2:#f3ebe0; --panel:#fffdfa; --panel2:#f6efe4;
-  --line:#e3d5c2; --line2:#d3c0a8;
-  --ink:#332a24; --dim:#7d6a5a; --dimmer:#a4917f;
-  --amber:#c8823a;      /* 일출빛 — 좋음 */
-  --clay:#c96f5a;       /* 테라코타 — 나쁨 */
-  --rose:#bd8a86;
-  --sage:#8a9a78;
-  --plum:#7e6486;       /* 여행 기간 */
-  --sky1:#f6d9b8; --sky2:#eab894; --sky3:#c98f8a; --sky4:#8a6f8e;
-  --rock:#cbb69c;
-  --shadow:0 1px 2px rgba(76,55,40,.05), 0 6px 20px -10px rgba(76,55,40,.18);
-  --r:18px;
+  --bg:#faf6f0; --panel:#fff; --tint:#f4ede2; --line:#e6dccd;
+  --ink:#2e2620; --ink2:#5d5044; --dim:#8a7b6c;
+  --amber:#b5762a;   /* 뜸 · 검증 통과 (ΔE 17.5) */
+  --clay:#8c3b2f;    /* 취소 */
+  --plum:#6d5480;
+  --sky1:#f5d5b2; --sky2:#e5ac8c; --sky3:#bb7f80; --sky4:#6a5476; --rock:#c6b096;
 }
-@media (prefers-color-scheme: dark){
+@media (prefers-color-scheme:dark){
   :root{
-    --bg:#17131f; --bg2:#1e1829; --panel:#221b2e; --panel2:#2b2239;
-    --line:#39304a; --line2:#4b3f5f;
-    --ink:#f0e7dc; --dim:#a99bb0; --dimmer:#7b6e86;
-    --amber:#e0a662; --clay:#dd8570; --rose:#c99a95; --sage:#9db089; --plum:#b394c0;
-    --sky1:#3b2c46; --sky2:#5a3b4e; --sky3:#7d4f51; --sky4:#2a2036;
-    --rock:#2f2740;
-    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 26px -12px rgba(0,0,0,.6);
+    --bg:#15121b; --panel:#1e1a26; --tint:#272130; --line:#3a3245;
+    --ink:#f2ece3; --ink2:#c3b8ab; --dim:#8f8496;
+    --amber:#e0a463; --clay:#e08a76; --plum:#b598c6;
+    --sky1:#3a2b40; --sky2:#583c4c; --sky3:#7a4d52; --sky4:#241d30; --rock:#2b2437;
   }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{
-  margin:0;overflow-x:hidden;background:var(--bg);color:var(--ink);
+body{margin:0;overflow-x:hidden;background:var(--bg);color:var(--ink);line-height:1.6;
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
-  line-height:1.6;-webkit-font-smoothing:antialiased;
-}
+  -webkit-font-smoothing:antialiased}
 .num{font-family:Georgia,"Times New Roman",serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 
-/* ── 히어로: 새벽 하늘 + 열기구 + 요정굴뚝 ── */
-.hero{position:relative;overflow:hidden;background:linear-gradient(178deg,var(--sky4) 0%,var(--sky3) 42%,var(--sky2) 72%,var(--sky1) 100%);padding:52px 0 0}
-.hero .inner{position:relative;z-index:3;max-width:1080px;margin:0 auto;padding:0 20px 128px}
-.hero h1{margin:0;font-size:27px;font-weight:700;letter-spacing:-.03em;color:#fff;text-shadow:0 1px 14px rgba(60,30,40,.34)}
-.hero .tag{margin:7px 0 0;font-size:13.5px;color:rgba(255,255,255,.9);text-shadow:0 1px 8px rgba(60,30,40,.3)}
-.hero .live{display:inline-flex;align-items:center;gap:7px;margin-top:15px;padding:6px 13px;font-size:12px;
-  background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.3);border-radius:999px;color:#fff;backdrop-filter:blur(8px)}
-.hero .live b{font-weight:700}
+/* 하늘 */
+.hero{position:relative;overflow:hidden;padding:46px 0 0;
+  background:linear-gradient(178deg,var(--sky4) 0%,var(--sky3) 44%,var(--sky2) 74%,var(--sky1) 100%)}
+.hero .inner{position:relative;z-index:3;max-width:960px;margin:0 auto;padding:0 20px 118px}
+.hero h1{margin:0;font-size:25px;font-weight:700;letter-spacing:-.03em;color:#fff;text-shadow:0 2px 16px rgba(50,25,35,.4)}
+.hero .tag{margin:6px 0 0;font-size:13px;color:rgba(255,255,255,.88);text-shadow:0 1px 10px rgba(50,25,35,.35)}
+.hero .live{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:5px 13px;font-size:12px;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:999px;color:#fff}
 .hero .live button{background:none;border:0;color:#fff;font:inherit;text-decoration:underline;cursor:pointer;padding:0;opacity:.85}
-.skyline{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:152px;z-index:2;display:block}
+.skyline{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:150px;z-index:2;display:block}
 .balloons{position:absolute;inset:0;z-index:1;pointer-events:none}
-.balloons svg{position:absolute;opacity:.92}
+.balloons svg{position:absolute;opacity:.9}
 @keyframes drift{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-13px) rotate(1.5deg)}}
 @media (prefers-reduced-motion:reduce){.balloons svg{animation:none!important}}
 
-.wrap{max-width:1080px;margin:0 auto;padding:22px 20px 90px}
-.wrap.pulled{margin-top:-56px;position:relative;z-index:5}
-h2{font-size:12px;margin:0 0 14px;color:var(--dim);font-weight:700;letter-spacing:.13em;text-transform:uppercase}
-.sub{color:var(--dim);font-size:13px;margin:0 0 18px}
+.wrap{max-width:960px;margin:-92px auto 0;padding:0 20px 80px;position:relative;z-index:5}
 
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-bottom:15px;box-shadow:var(--shadow)}
-.tripcard{border-color:var(--plum);border-width:1.5px}
-.row{display:flex;gap:11px;flex-wrap:wrap}
-.g{color:var(--amber)}.m{color:var(--rose)}.b{color:var(--clay)}
-.bg-g{background:var(--amber)}.bg-m{background:var(--rose)}.bg-b{background:var(--clay)}
+/* 판정 — 테두리 없이 여백과 활자만으로 */
+.verdict{background:var(--panel);border-radius:22px;padding:30px 28px 26px;
+  box-shadow:0 2px 4px rgba(60,40,28,.04),0 16px 40px -20px rgba(60,40,28,.28);margin-bottom:14px}
+.vhead{font-size:12.5px;color:var(--dim);letter-spacing:.04em}
+.vmain{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin:6px 0 4px}
+.vnum{font-size:74px;line-height:.95;color:var(--ink)}
+.vword{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.vsub{font-size:13.5px;color:var(--ink2);margin-top:6px}
+.meter{height:7px;border-radius:5px;background:var(--tint);overflow:hidden;margin:18px 0 0}
+.meter>i{display:block;height:100%;border-radius:5px;background:var(--amber)}
 
-/* ── 여행 히어로 숫자 ── */
-.hero2{text-align:center;padding:6px 0 20px}
-.herolbl{font-size:13px;color:var(--dim);margin-bottom:8px}
-.heropct{font-size:68px;font-weight:400;line-height:1;color:var(--amber)}
-.herosub{font-size:13px;color:var(--dim);margin:12px auto 0;max-width:520px}
-.tdays{display:grid;grid-template-columns:repeat(auto-fit,minmax(102px,1fr));gap:9px}
-.tday{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:13px 9px;text-align:center}
-.tdate{font-size:11.5px;color:var(--dim)}
-.tpct{font-size:25px;margin:5px 0 8px;font-weight:400}
-.tbar{height:4px;border-radius:3px;background:var(--line);overflow:hidden}
-.tbar>i{display:block;height:100%;border-radius:3px}
-.tkind{font-size:10.5px;color:var(--dimmer);margin-top:7px}
-.acc{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--dim);flex-wrap:wrap;
-  background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px 15px;margin-top:15px}
-.acc .dot{flex:0 0 auto}
-.acc b{color:var(--ink)}
-.emptytrip{text-align:center;padding:26px 12px;color:var(--dim);font-size:13.5px}
+/* 확률 3분할 */
+.split{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+  border-radius:14px;overflow:hidden;margin-top:20px}
+.sp{background:var(--panel);padding:13px 14px}
+.sp .k{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px}
+.sp .k i{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+.sp .v{font-size:25px;color:var(--ink);margin-top:5px}
+.sp .d{font-size:10.5px;color:var(--dim);margin-top:2px}
+.sp.off .v{color:var(--dim)}
 
-/* ── 달력 ── */
-.months{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:22px}
-.mtitle{font-size:13.5px;color:var(--ink);margin-bottom:10px;font-weight:700}
+.sect{margin:28px 0 0}
+.sect>h2{font-size:12px;margin:0 0 3px;color:var(--dim);font-weight:700;letter-spacing:.13em;text-transform:uppercase}
+.sect>.lede{font-size:13px;color:var(--ink2);margin:0 0 15px}
+.plain{background:var(--panel);border-radius:18px;padding:22px;box-shadow:0 1px 3px rgba(60,40,28,.05)}
+
+/* 여행 */
+.tdays{display:grid;grid-template-columns:repeat(auto-fit,minmax(94px,1fr));gap:8px;margin-top:16px}
+.tday{background:var(--tint);border-radius:13px;padding:12px 8px;text-align:center}
+.tday .dt{font-size:11px;color:var(--dim)}
+.tday .pv{font-size:22px;margin:4px 0 7px;color:var(--ink)}
+.tday .bb{height:3px;border-radius:2px;background:rgba(0,0,0,.07);overflow:hidden}
+.tday .bb>i{display:block;height:100%;border-radius:2px;background:var(--amber)}
+.tday .kd{font-size:10px;color:var(--dim);margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{font-size:11.5px;color:var(--ink2);background:var(--tint);border-radius:999px;padding:6px 13px}
+.chip b{color:var(--ink)}
+.empty{text-align:center;padding:22px 10px;color:var(--dim);font-size:13.5px}
+
+/* 차트 */
+.chart{width:100%;height:190px;display:block;touch-action:none;overflow:visible}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .axis{fill:var(--dim);font-size:10px}
+.chart .fc-area{fill:var(--amber);opacity:.14}
+.chart .fc-line{fill:none;stroke:var(--amber);stroke-width:2;stroke-linejoin:round}
+.chart .cl-line{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-dasharray:4 4;opacity:.55}
+.chart .dot{fill:var(--amber);stroke:var(--panel);stroke-width:2}
+.chart .cross{stroke:var(--ink2);stroke-width:1;opacity:.4}
+.chart .hit{fill:transparent}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:11.5px;
+  padding:7px 10px;border-radius:9px;white-space:nowrap;opacity:0;transition:opacity .1s;z-index:20;line-height:1.5}
+.chartwrap{position:relative}
+.lgd{display:flex;gap:16px;font-size:11.5px;color:var(--ink2);flex-wrap:wrap;margin-top:10px}
+.lgd span{display:flex;align-items:center;gap:6px}
+.lgd i{width:14px;height:2.5px;border-radius:2px;flex:0 0 auto}
+
+/* 달력 — 숫자는 잉크, 색은 배경 틴트 */
+.months{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:20px}
+.mtitle{font-size:13px;color:var(--ink);margin-bottom:9px;font-weight:700}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;user-select:none;-webkit-user-select:none}
-.cal .h{font-size:10px;color:var(--dimmer);text-align:center;padding:2px 0;font-weight:600}
-.cal .c{aspect-ratio:1;min-height:40px;border-radius:12px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--line);
-  position:relative;transition:transform .1s,box-shadow .1s}
-.cal .c .n{font-size:9.5px;color:var(--dimmer);line-height:1}
-.cal .c .p{font-size:14.5px;font-weight:400;line-height:1.25;margin-top:2px}
+.cal .h{font-size:9.5px;color:var(--dim);text-align:center;padding:2px 0;font-weight:600}
+.cal .c{aspect-ratio:1;min-height:38px;border-radius:11px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;background:var(--tint);position:relative}
+.cal .c .n{font-size:9px;color:var(--dim);line-height:1}
+.cal .c .p{font-size:14px;line-height:1.2;margin-top:1px;color:var(--ink)}
 .cal .c.sel{cursor:pointer}
-.cal .c.sel:hover{transform:translateY(-1px);box-shadow:0 3px 10px -3px rgba(76,55,40,.28);border-color:var(--line2)}
-.cal .c.past{opacity:.26;border-style:dashed}
-.cal .c.trip{background:color-mix(in srgb,var(--plum) 15%,var(--panel2));border-color:var(--plum);border-width:1.5px}
-.cal .c.tripA{border-top-left-radius:16px;border-bottom-left-radius:16px}
-.cal .c.tripB{border-top-right-radius:16px;border-bottom-right-radius:16px}
-.cal .c.anchor{box-shadow:0 0 0 3px color-mix(in srgb,var(--plum) 30%,transparent)}
-.cal .c .fc{position:absolute;top:4px;right:5px;width:4px;height:4px;border-radius:50%;background:var(--sky3)}
-.calhint{font-size:12px;color:var(--dim);background:var(--panel2);border:1px dashed var(--line2);
-  border-radius:12px;padding:10px 13px;margin-bottom:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cal .c.sel:hover{box-shadow:inset 0 0 0 2px var(--ink2)}
+.cal .c.past{opacity:.22}
+.cal .c.trip{box-shadow:inset 0 0 0 2px var(--plum)}
+.cal .c.anchor{box-shadow:inset 0 0 0 2px var(--plum),0 0 0 3px rgba(109,84,128,.22)}
+.cal .c .fc{position:absolute;top:4px;right:5px;width:4px;height:4px;border-radius:50%;background:var(--ink2);opacity:.4}
+.calhint{font-size:12px;color:var(--ink2);margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .calhint b{color:var(--ink)}
 .calhint button{margin-left:auto}
 
-/* ── 16일 스트립 ── */
-.strip{display:flex;gap:5px;align-items:flex-end;overflow-x:auto;padding-bottom:8px}
-.strip .d{flex:0 0 auto;width:52px;text-align:center}
-.strip .col{height:82px;display:flex;align-items:flex-end;justify-content:center}
-.strip .col>i{display:block;width:26px;border-radius:9px 9px 4px 4px}
-.strip .dt{font-size:9.5px;color:var(--dimmer);margin-top:6px;white-space:nowrap}
-.strip .vv{font-size:11px;margin-top:3px}
-.big{display:flex;gap:11px;flex-wrap:wrap;margin-bottom:18px}
-.bigcard{flex:1;min-width:150px;background:var(--panel2);border:1px solid var(--line);border-radius:15px;padding:15px}
-.bigcard .lbl{font-size:11.5px;color:var(--dim);margin-bottom:5px}
-.bigcard .pct{font-size:36px;font-weight:400;line-height:1}
-.bigcard .meta{font-size:11.5px;color:var(--dim);margin-top:7px}
-.bar{height:4px;border-radius:3px;background:var(--line);margin-top:11px;overflow:hidden}
-.bar>i{display:block;height:100%;border-radius:3px}
-
-/* ── 운항기록: 잔디밭 스타일로 압축 ── */
-.grass{display:flex;gap:14px;overflow-x:auto;padding:4px 0 8px}
-.gmonth{flex:0 0 auto}
-.glabel{font-size:10.5px;color:var(--dimmer);margin-bottom:5px;font-weight:600}
+/* 기록 잔디 */
+.grass{display:flex;gap:13px;overflow-x:auto;padding:4px 0 8px}
+.glabel{font-size:10px;color:var(--dim);margin-bottom:5px;font-weight:600}
 .gcells{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;gap:3px}
-.gc{width:14px;height:14px;border-radius:4px;background:var(--panel2);border:1px solid var(--line);cursor:pointer}
-.gc.flew{background:var(--amber);border-color:var(--amber)}
-.gc.canc{background:var(--clay);border-color:var(--clay)}
-.gc.guess{background:var(--line);border-color:var(--line2);opacity:.55}
-.gc.none{background:transparent;border-color:transparent;cursor:default}
+.gc{width:13px;height:13px;border-radius:4px;background:var(--tint);cursor:pointer}
+.gc.flew{background:var(--amber)}
+.gc.canc{background:var(--clay)}
+.gc.guess{background:var(--line)}
+.gc.none{background:transparent;cursor:default}
 .gc:hover:not(.none){outline:2px solid var(--ink);outline-offset:1px}
 
-button{font:inherit;font-size:13px;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);
-  border-radius:11px;padding:8px 15px;cursor:pointer;transition:background .12s,border-color .12s}
-button:hover{border-color:var(--amber);background:var(--panel)}
-button.p{background:var(--amber);color:#fff;border-color:var(--amber);font-weight:600}
-button.p:hover{filter:brightness(1.06)}
-button.sm{padding:5px 11px;font-size:12px;border-radius:9px}
-input,select{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:11px;padding:8px 11px}
+button{font:inherit;font-size:13px;background:var(--tint);color:var(--ink);border:0;
+  border-radius:10px;padding:9px 15px;cursor:pointer;transition:filter .12s}
+button:hover{filter:brightness(.95)}
+button.p{background:var(--amber);color:#fff;font-weight:600}
+button.sm{padding:5px 11px;font-size:11.5px;border-radius:8px}
+input,select{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 11px}
 label{font-size:11.5px;color:var(--dim);display:flex;flex-direction:column;gap:5px}
 a{color:var(--amber)}
-
+.row{display:flex;gap:10px;flex-wrap:wrap}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
 th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line)}
-th{color:var(--dim);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em}
-table.links td{vertical-align:top}
+th{color:var(--dim);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
 table.links td:first-child{white-space:nowrap;font-weight:600}
-.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--line2);color:var(--dim)}
-.tag.ok{color:var(--sage);border-color:var(--sage)}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+.tag.ok{color:var(--amber);border-color:var(--amber)}
 .tag.no{color:var(--clay);border-color:var(--clay)}
-.note{font-size:12.5px;color:var(--dim);background:var(--panel2);border-left:3px solid var(--line2);
-  padding:12px 14px;border-radius:0 12px 12px 0;margin-top:13px;line-height:1.65}
-.note.warn{border-left-color:var(--clay)}
+.note{font-size:12.5px;color:var(--ink2);background:var(--tint);padding:12px 14px;border-radius:12px;margin-top:13px;line-height:1.65}
+.note.warn{background:color-mix(in srgb,var(--clay) 9%,var(--tint))}
 .log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--dim);
-  max-height:150px;overflow:auto;white-space:pre-wrap;background:var(--panel2);padding:11px;border-radius:11px}
+  max-height:150px;overflow:auto;white-space:pre-wrap;background:var(--tint);padding:11px;border-radius:10px}
 .spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--amber);
   border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .hide{display:none}
-.legend{display:flex;gap:15px;font-size:11px;color:var(--dim);flex-wrap:wrap;margin-top:12px;align-items:center}
+.legend{display:flex;gap:15px;font-size:11px;color:var(--ink2);flex-wrap:wrap;margin-top:12px;align-items:center}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .scroll{overflow-x:auto}
+.g{color:var(--amber)}.m{color:var(--ink2)}.b{color:var(--clay)}
+.bg-g{background:var(--amber)}.bg-m{background:var(--sky3)}.bg-b{background:var(--clay)}
 
-details{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:13px;overflow:hidden;box-shadow:var(--shadow)}
-details>summary{cursor:pointer;padding:16px 20px;font-size:13.5px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
+details{background:var(--panel);border-radius:16px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(60,40,28,.05)}
+details>summary{cursor:pointer;padding:15px 20px;font-size:13.5px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
 details>summary::-webkit-details-marker{display:none}
 details>summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--dim);border-bottom:1.5px solid var(--dim);
   transform:rotate(-45deg);transition:transform .18s;flex:0 0 auto}
 details[open]>summary::before{transform:rotate(45deg)}
-details>summary:hover{background:var(--panel2)}
+details>summary:hover{background:var(--tint)}
 details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-left:auto}
 .dbody{padding:0 20px 20px}
 
 @media (max-width:640px){
-  .hero{padding-top:24px}
-  .hero .inner{padding:0 15px 74px}
-  .hero h1{font-size:21px}
-  .hero .tag{font-size:12px}
-  .skyline{height:96px}
-  .wrap{padding:16px 14px 64px}
-  .wrap.pulled{margin-top:-44px}
-  .card{padding:16px;border-radius:15px;margin-bottom:11px}
-  details{border-radius:15px;margin-bottom:11px}
+  .hero{padding-top:26px}
+  .hero .inner{padding:0 16px 100px}
+  .hero h1{font-size:20px}
+  .skyline{height:104px}
+  .wrap{margin-top:-78px;padding:0 14px 60px}
+  .verdict{padding:22px 18px 20px;border-radius:18px}
+  .vnum{font-size:56px}
+  .vword{font-size:16px}
+  .split{grid-template-columns:1fr;gap:1px}
+  .sp{display:flex;align-items:baseline;gap:10px;padding:11px 14px}
+  .sp .k{flex:1}
+  .sp .v{font-size:20px;margin:0}
+  .sp .d{margin:0}
+  .plain{padding:16px;border-radius:15px}
+  .sect{margin-top:22px}
+  .tdays{grid-template-columns:repeat(3,1fr);gap:6px}
+  .tday{padding:9px 4px;border-radius:11px}
+  .tday .pv{font-size:18px}
+  .months{grid-template-columns:1fr;gap:16px}
+  .cal .c{min-height:0;border-radius:9px}
+  .cal .c .p{font-size:12.5px}
+  .chart{height:160px}
   details>summary{padding:14px 15px;font-size:13px;flex-wrap:wrap}
   details>summary .hint{width:100%;margin:3px 0 0}
   .dbody{padding:0 15px 15px}
-  .heropct{font-size:50px}
-  .tdays{grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:7px}
-  .tday{padding:10px 5px;border-radius:12px}
-  .tpct{font-size:20px}
-  .months{grid-template-columns:1fr;gap:18px}
-  .cal{gap:3px}
-  .cal .c{min-height:0;border-radius:10px}
-  .cal .c .p{font-size:13px}
-  .big{gap:7px}
-  .bigcard{min-width:0;flex:1 1 30%;padding:11px 9px;border-radius:13px}
-  .bigcard .pct{font-size:26px}
-  .bigcard .lbl,.bigcard .meta{font-size:10.5px}
-  .strip .d{width:44px}.strip .col{height:60px}.strip .col>i{width:21px}
-  button{padding:9px 13px}
   input,select{padding:9px 11px;font-size:16px}
   th,td{padding:7px 5px;font-size:11.5px}
-  .note{font-size:12px;padding:10px 12px}
   table.links td:first-child{white-space:normal}
 }
 </style>
@@ -252,46 +245,55 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
   </div>
 </header>
 
-<div class="wrap pulled">
+<div class="wrap">
 
-<div class="card tripcard">
+<div class="verdict" id="verdict"><span class="log">불러오는 중…</span></div>
+
+<div class="sect" id="tripsect">
   <h2>여행 기간</h2>
-  <div id="tripbox"><span class="log">계산 중…</span></div>
+  <p class="lede" id="triplede">달력에서 날짜를 골라 주세요.</p>
+  <div class="plain" id="tripbox"><span class="log">계산 중…</span></div>
 </div>
 
-<div class="card">
-  <h2>앞으로 3개월</h2>
-  <div class="calhint">
-    <span>📅 달력에서 <b>날짜를 끌거나</b>, <b>시작일과 종료일을 차례로 눌러</b> 여행 기간을 정하세요.</span>
-    <button class="sm" id="btnClearTrip">기간 지우기</button>
-  </div>
-  <div class="months" id="months"></div>
-  <div class="legend">
-    <span><i style="background:var(--sky3);border-radius:50%"></i>점이 있는 날 = 실제 일기예보 반영</span>
-    <span><i style="background:color-mix(in srgb,var(--plum) 40%,transparent);border:1px solid var(--plum)"></i>여행 기간</span>
-  </div>
-  <div class="note">
-    16일 안쪽은 <b>실제 예보</b>, 그 뒤는 <b>지난 15년 같은 날짜의 평균</b>입니다.
-    먼 날짜는 "이날 이렇게 된다"가 아니라 <b>"예년에 이 정도였다"</b>는 뜻입니다.
+<div class="sect">
+  <h2>앞으로 16일</h2>
+  <p class="lede">주황은 실제 예보, 점선은 예년 이맘때 평균입니다. 둘이 벌어질수록 이번 주가 평소와 다르다는 뜻이에요.</p>
+  <div class="plain">
+    <div class="chartwrap">
+      <svg class="chart" id="chart"></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+    <div class="lgd">
+      <span><i style="background:var(--amber)"></i>예보 종합</span>
+      <span><i style="background:var(--ink2);opacity:.55"></i>예년 평균</span>
+    </div>
+    <div class="note" id="fcnote"></div>
   </div>
 </div>
 
-<div class="card">
-  <h2>가까운 16일</h2>
-  <div class="big" id="big"></div>
-  <div class="strip" id="strip"><span class="log">불러오는 중…</span></div>
-  <div class="legend">
-    <span><i class="bg-g"></i>70% 이상</span><span><i class="bg-m"></i>40~70%</span><span><i class="bg-b"></i>40% 미만</span>
+<div class="sect">
+  <h2>3개월 달력</h2>
+  <p class="lede">여행 기간을 여기서 정합니다. 숫자는 뜰 가능성(%)이고, 진할수록 좋은 날입니다.</p>
+  <div class="plain">
+    <div class="calhint">
+      <span>날짜를 <b>끌거나</b>, 시작일과 종료일을 <b>차례로 누르세요</b>.</span>
+      <button class="sm" id="btnClearTrip">기간 지우기</button>
+    </div>
+    <div class="months" id="months"></div>
+    <div class="legend">
+      <span><i style="background:var(--ink2);opacity:.4;border-radius:50%"></i>점 = 실제 예보 반영</span>
+      <span><i style="box-shadow:inset 0 0 0 2px var(--plum);background:var(--tint)"></i>여행 기간</span>
+    </div>
   </div>
-  <div class="note" id="fcnote"></div>
 </div>
 
+<div class="sect">
 <details>
   <summary>운항 기록<span class="hint" id="logStat"></span></summary>
   <div class="dbody">
     <div class="note" style="margin-top:0">
       <b>주황 = 떴음</b>, <b>붉은색 = 취소</b>, 회색은 날씨로 찍어본 값입니다.
-      칸을 누르면 <b>떴음 → 취소 → 지움</b>으로 직접 고칠 수 있고, 고칠수록 예측이 정확해집니다.
+      칸을 누르면 <b>떴음 → 취소 → 지움</b>으로 고칠 수 있고, 고칠수록 예측이 정확해집니다.
     </div>
     <div class="row" style="margin:14px 0 12px">
       <button id="btnScrape">오늘 상태 읽어오기</button>
@@ -304,8 +306,8 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
     <div class="legend">
       <span><i style="background:var(--amber)"></i>떴음</span>
       <span><i style="background:var(--clay)"></i>취소</span>
-      <span><i style="background:var(--line);opacity:.6"></i>추정</span>
-      <span><i style="background:var(--panel2);border:1px solid var(--line)"></i>기록 없음</span>
+      <span><i style="background:var(--line)"></i>추정</span>
+      <span><i style="background:var(--tint)"></i>기록 없음</span>
     </div>
     <div class="note warn" id="scrapenote">
       브라우저 보안 때문에 다른 사이트를 직접 읽지 못합니다. 중계 서버를 거쳐 시도하고, 막히면 날씨로 추정합니다.
@@ -331,13 +333,13 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
 <details>
   <summary>참고 사이트<span class="hint">공식 판정처와 다른 예보들</span></summary>
   <div class="dbody">
-    <p class="note" style="margin-top:0">이 앱은 추정치입니다. <b>실제 운항 여부는 첫 번째 링크가 최종 판정</b>이고,
-      나머지는 다른 곳의 예상치입니다. 출발 전날 밤과 당일 새벽에 직접 확인하세요.</p>
+    <p class="note" style="margin-top:0">이 앱은 추정치입니다. <b>실제 운항 여부는 첫 번째 링크가 최종 판정</b>입니다.
+      출발 전날 밤과 당일 새벽에 직접 확인하세요.</p>
     <table class="links"><tbody>
       <tr><td><a href="https://shmkapadokya.kapadokya.edu.tr/" target="_blank" rel="noopener">SHM Kapadokya</a></td>
           <td><span class="tag ok">공식</span> 매일 새벽 섹터별 운항 판정을 내리는 곳. 근거 METAR도 함께 공개합니다.</td></tr>
       <tr><td><a href="https://balloonstatus.com/cappadocia/today/" target="_blank" rel="noopener">Balloon Status</a></td>
-          <td>오늘·내일 상태와 7일 예보. 지난 60일 기록도 공개해서 이 앱의 초기 데이터로 썼습니다.</td></tr>
+          <td>오늘·내일 상태와 7일 예보. 지난 60일 기록도 공개해 이 앱의 초기 데이터로 썼습니다.</td></tr>
       <tr><td><a href="https://epicturkeytravel.com/cappadocia-balloon-flight-status/" target="_blank" rel="noopener">Epic Turkey Travel</a></td>
           <td>4월부터 매일 기록 중. 월별 실제 운항률과 상공 풍속을 공개합니다.</td></tr>
       <tr><td><a href="https://toursce.com/cappadocia-hot-air-balloon-flight-status-cancellation-checker/" target="_blank" rel="noopener">ToursCE</a></td>
@@ -354,12 +356,13 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
   <summary>용어 설명<span class="hint">어려운 말이 나오면 여기</span></summary>
   <div class="dbody">
     <table><tbody>
-      <tr><td style="width:132px"><b>역대 평균</b></td><td>지난 15년간 같은 날짜의 날씨를 모아 계산한 값. 예보가 아닙니다.</td></tr>
-      <tr><td><b>앙상블</b></td><td>유럽 기상센터가 조건을 조금씩 바꿔 51번 돌린 예보. 그중 몇 번이 "뜰 수 있다"고 나오는지가 곧 확률입니다.</td></tr>
-      <tr><td><b>저층 제트</b></td><td>땅은 잔잔한데 300~800m 상공에만 강한 바람이 흐르는 현상. 맑고 고요한 새벽에 잘 생겨서 이륙장에서는 완벽해 보입니다. 기구는 옆으로 못 가서 빠른 층에 들어가면 착륙할 때 끌려갑니다.</td></tr>
+      <tr><td style="width:118px"><b>예년 평균</b></td><td>지난 15년간 같은 날짜의 날씨를 모아 계산한 값. 예보가 아니라 "이맘때는 대개 이랬다"입니다.</td></tr>
+      <tr><td><b>예보 종합</b></td><td>유럽 기상센터가 조건을 조금씩 바꿔 51번 돌린 예보 중 몇 번이 "뜰 수 있다"고 나오는지.</td></tr>
+      <tr><td><b>하이브리드</b></td><td>가까운 날은 예보를, 먼 날은 예년 평균을 더 믿도록 섞은 값. 화면의 큰 숫자가 이것입니다.</td></tr>
+      <tr><td><b>실질 독립 일수</b></td><td>날씨는 며칠씩 몰려 다닙니다. 5일 여행이어도 서로 다른 기회는 2~3번뿐일 수 있는데, 그 실제 기회 수입니다.</td></tr>
+      <tr><td><b>저층 제트</b></td><td>땅은 잔잔한데 300~800m 상공에만 강한 바람이 흐르는 현상. 이륙장에서는 완벽해 보이는데 못 뜹니다.</td></tr>
       <tr><td><b>이슬점차</b></td><td>기온과 이슬점의 차이. 2도 아래로 좁아지면 안개가 끼기 쉽습니다.</td></tr>
-      <tr><td><b>역전층</b></td><td>위가 아래보다 따뜻한 공기층. 지상을 잔잔하게 해 이륙엔 좋지만, 안개를 가두고 그 위에 강풍을 얹기도 합니다.</td></tr>
-      <tr><td><b>방향시어</b></td><td>지상과 상공의 바람 방향 차이. 기구는 고도를 바꿔 층을 갈아타는 식으로만 방향을 고르므로, 층끼리 방향이 같으면 착륙지를 못 고릅니다.</td></tr>
+      <tr><td><b>역전층</b></td><td>위가 아래보다 따뜻한 공기층. 이륙엔 좋지만 안개를 가두고 그 위에 강풍을 얹기도 합니다.</td></tr>
       <tr><td><b>취소일 적중률</b></td><td>실제로 못 뜬 날 중 이 앱이 미리 "위험하다"고 말한 비율. <b>가장 중요한 숫자입니다.</b></td></tr>
       <tr><td><b>Brier</b></td><td>확률을 맞히는 실력 점수. 낮을수록 좋고, "무조건 뜬다"고 찍는 것보다 낮아야 쓸모가 있습니다.</td></tr>
       <tr><td><b>SHGM</b></td><td>터키 민간항공청. 매일 새벽 이곳이 운항 여부를 최종 결정합니다.</td></tr>
@@ -370,29 +373,28 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
 <details>
   <summary>설정 · 상태<span class="hint" id="diagHint"></span></summary>
   <div class="dbody">
-    <div class="row" style="align-items:flex-end;margin-bottom:16px">
-      <label>과거 몇 년치<input type="number" id="cfgYears" min="5" max="30" step="1" style="width:78px"></label>
-      <label>연간 운항일 기준<input type="number" id="cfgAnchor" min="120" max="330" step="5" style="width:88px"></label>
+    <div class="row" style="align-items:flex-end;margin-bottom:14px">
+      <label>과거 몇 년치<input type="number" id="cfgYears" min="5" max="30" step="1" style="width:76px"></label>
+      <label>연간 운항일 기준<input type="number" id="cfgAnchor" min="120" max="330" step="5" style="width:86px"></label>
       <button class="p" id="btnRecalc">다시 계산</button>
       <button id="btnClearCache">캐시 비우기</button>
     </div>
-    <div class="row" style="align-items:flex-end;margin-bottom:16px">
-      <label>여행 시작<input type="date" id="cfgTripS" style="width:152px"></label>
-      <label>여행 종료<input type="date" id="cfgTripE" style="width:152px"></label>
+    <div class="row" style="align-items:flex-end;margin-bottom:14px">
+      <label>여행 시작<input type="date" id="cfgTripS" style="width:150px"></label>
+      <label>여행 종료<input type="date" id="cfgTripE" style="width:150px"></label>
       <button id="btnTrip">적용</button>
     </div>
     <div class="scroll"><table id="diag"><thead><tr><th>단계</th><th>상태</th><th>비고</th></tr></thead><tbody></tbody></table></div>
-    <div class="log" id="conlog" style="margin-top:13px"></div>
+    <div class="log" id="conlog" style="margin-top:12px"></div>
     <div class="note warn">
       <b>이 앱이 못 하는 일.</b> 날씨가 멀쩡해도 취소되는 날이 있습니다. 항공청 판단, 슬롯 제한, 사고 후 중단,
-      업체 사정 같은 건 날씨로 예측할 수 없습니다. 실제로 지상 2kt·시정 40km인 날에도 전 섹터가 닫힌 적이 있습니다.
+      업체 사정은 날씨로 예측할 수 없습니다. 실제로 지상 2kt·시정 40km인 날에도 전 섹터가 닫힌 적이 있습니다.
       그래서 확률은 아무리 좋아도 95%에서 자릅니다. 여기 숫자는 <b>참고용 추정</b>이지 공식 발표가 아닙니다.
     </div>
-    <div class="sub" style="margin:14px 0 0;font-size:11px">
-      기후 계산 <span class="yrs2">15</span>년 · <span id="yrs"></span>
-    </div>
+    <div class="lede" style="margin:13px 0 0;font-size:11px">기후 계산 <span class="yrs2">15</span>년 · <span id="yrs"></span></div>
   </div>
 </details>
+</div>
 
 </div>
 
@@ -1019,7 +1021,7 @@ function combine(date, F, clim){
                    : (F.pAnalysis[date]!=null ? F.pAnalysis[date] : null));
   const spread = ms.length>1 ? Math.max(...ms)-Math.min(...ms) : null;
 
-  if(pf==null) return { p: pc, kind:"clim", pc, pf:null, spread:null, lead, n:ms.length };
+  if(pf==null) return { p: pc, kind:"clim", pc, pf:null, spread:null, lead, n:ms.length, w:0 };
   // 신뢰 가중: D+0~2 예보 100%, 이후 지수 감쇠
   const w = lead<=2 ? 1 : Math.max(0.35, Math.exp(-(lead-2)/9));
   const p = pc==null ? pf : w*pf + (1-w)*pc;
@@ -1036,38 +1038,7 @@ const inTrip = d => cfg.tripStart && cfg.tripEnd && d>=cfg.tripStart && d<=cfg.t
    ──────────────────────────────────────────────────────────── */
 let STATE = { clim:null, F:null };
 
-function renderBig(){
-  const { clim, F } = STATE;
-  const items = [
-    { k: TODAY, lbl:"오늘" },
-    { k: D.add(TODAY,1), lbl:"내일" },
-    { k: D.add(TODAY,2), lbl:"모레" }
-  ];
-
-
-  $("#big").innerHTML = items.map(it=>{
-    const c = F ? combine(it.k, F, clim) : null;
-    const p = capP(c && c.p);
-    const rec = flightLog[it.k];
-    let meta = "";
-    if(c){
-      if(c.kind==="clim") meta = `역대 ${clim?clim.years:"?"}년 평균`;
-      else meta = `예보 ${c.n||1}개 종합` + (c.spread!=null && c.spread>0.25 ? " · 아직 엇갈림" : "");
-    }
-    if(rec) meta = (rec.s==="flew"?"실제로 떴습니다":"실제로 취소됐습니다") + (meta?" · "+meta:"");
-    return `<div class="bigcard" style="${it.trip?"border-color:var(--trip)":""}">
-      <div class="lbl">${esc(it.lbl)} · ${D.label(it.k)}</div>
-      <div class="pct num ${cls(p)}">${pctS(p)}</div>
-      <div class="bar"><i class="${bgc(p)}" style="width:${p?Math.round(p*100):0}%"></i></div>
-      <div class="meta">${esc(meta)}</div>
-    </div>`;
-  }).join("");
-}
-
-
-/* ── 여행 기간: "며칠 중 최소 하루라도 뜰 확률" ──
-   날짜별 확률을 그냥 곱하면 안 된다. 취소는 뭉쳐서 온다(2026-08-10~15 처럼 6일 연속).
-   그래서 과거 N년의 "같은 날짜 구간"을 통째로 꺼내 실제로 며칠이나 떴는지 세는 쪽이 정직하다. */
+/* ── 여행 기간: "며칠 중 최소 하루라도 뜰 확률" ── */
 function tripOutlook(){
   const clim = STATE.clim;
   if(!clim || !cfg.tripStart || !cfg.tripEnd) return null;
@@ -1078,42 +1049,62 @@ function tripOutlook(){
   }
   if(!days.length) return null;
 
-  // 1) 날짜별 표시 확률 (예보 범위면 예보, 아니면 기후)
+  // 1) 날짜별 표시 확률 (예보 범위면 예보, 아니면 예년)
   const per = days.map(k=>{
     const c = STATE.F ? combine(k, STATE.F, clim) : null;
     return { date:k, p: capP(c && c.p), kind: c ? c.kind : "clim" };
   });
 
-  // 2) 과거 같은 기간을 연도별로 재생: 며칠 떴나 / 하루도 못 뜬 해가 있었나
-  const years = [];
+  /* 2) 뭉침 보정.
+     예전에는 여기서 규칙 기반으로 "과거에 하루라도 뜬 해가 몇 번인가"를 세었다.
+     그런데 화면의 일별 확률은 학습 모델로 뽑으니 두 숫자가 서로 다른 자로 재어져,
+     일별 45%인데 "최소 하루 95%" 같은 모순이 났다.
+
+     이제는 과거에서 '구조'만 빌린다. 같은 기간을 연도별로 재생해 그해 내내 못 뜰
+     확률을 구하고, 그것이 몇 일치의 독립 시행에 해당하는지(실질 독립 일수)를 역산한다.
+     날씨가 며칠씩 몰려 다니면 5일이어도 실질은 2일 남짓이 된다.
+     그 구조를 화면에 쓰는 확률에 그대로 적용하므로 두 숫자가 어긋나지 않는다. */
+  let prodSum = 0, qSum = 0, qN = 0, nY = 0;
   const endY = new Date().getFullYear()-1, startY = endY - clim.years + 1;
   for(let y=startY; y<=endY; y++){
-    let flew = 0, have = 0;
+    let prod = 1, ok = true;
     for(const k of days){
       const sv = clim.dayS ? clim.dayS[y + k.slice(4)] : undefined;
-      if(sv==null) continue;
-      have++;
-      if(prob(sv, clim.s0) >= 0.5) flew++;
+      if(sv == null){ ok = false; break; }
+      const q = prob(sv, clim.s0);
+      prod *= (1 - q); qSum += q; qN++;
     }
-    if(have === days.length) years.push({ y, flew });
+    if(!ok) continue;
+    nY++; prodSum += prod;
   }
-  const nY = years.length;
-  const zero = years.filter(v=>v.flew===0).length;
-  const atLeastOne = nY ? 1 - zero/nY : null;
-  const avgFlew = nY ? years.reduce((a,v)=>a+v.flew,0)/nY : null;
+  const N = days.length;
+  const shown = per.map(d=>d.p).filter(v=>v!=null);
+  const pBar = shown.length ? shown.reduce((a,b)=>a+b,0)/shown.length : null;
+  let neff = null, atLeastOne = null;
 
-  // 3) 참고: 날짜별 확률을 독립으로 곱한 값 (보통 위보다 낙관적으로 나온다)
-  let indep = 1;
-  let ok = true;
-  for(const d of per){ if(d.p==null){ ok=false; break; } indep *= (1-d.p); }
-  indep = ok ? 1-indep : null;
+  if(nY >= 5 && qN && pBar != null){
+    const failHist = prodSum / nY;                 // 과거: 기간 내내 못 뜰 확률
+    const qBar = Math.min(0.995, Math.max(0.005, qSum / qN));
+    neff = (failHist > 0 && failHist < 1)
+      ? Math.log(failHist) / Math.log(1 - qBar)
+      : (failHist >= 1 ? 1 : N);
+    neff = Math.max(1, Math.min(N, neff));
+    atLeastOne = 1 - Math.pow(1 - pBar, neff);
+  } else if(pBar != null){
+    neff = N;
+    atLeastOne = 1 - Math.pow(1 - pBar, N);        // 과거가 모자라면 독립 가정
+  }
 
-  return { days, per, nY, zero, atLeastOne, avgFlew, indep, years };
+  // 참고: 뭉침을 무시했을 때 (보통 위보다 낙관적)
+  let indep = null;
+  if(shown.length === N){
+    let f = 1; for(const p of shown) f *= (1-p);
+    indep = 1 - f;
+  }
+  return { days, per, nY, neff, atLeastOne, indep, pBar };
 }
 
-
-/* 여행 기간이 걸친 달들의 "모델이 그달에 얼마나 맞았나"를 일수로 가중평균한다.
-   8/30~9/3 처럼 달을 넘기면 8월 2일치·9월 3일치로 가중한다. */
+/* 여행 기간이 걸친 달들의 "모델이 그달에 얼마나 맞았나"를 일수로 가중평균한다. */
 function tripAccuracy(days){
   const clim = STATE.clim;
   if(!clim || !clim.monthly || !days.length) return null;
@@ -1133,74 +1124,164 @@ function tripAccuracy(days){
 }
 
 function renderTrip(){
-  const box = $("#tripbox");
+  const box = $("#tripbox"), lede = $("#triplede");
   const t = tripOutlook();
   if(!t){
-    box.innerHTML = `<div class="emptytrip">아래 <b>앞으로 3개월</b> 달력에서 날짜를 끌거나<br>
-      시작일과 종료일을 차례로 눌러 여행 기간을 정해 주세요.</div>`;
+    if(lede) lede.textContent = "아래 3개월 달력에서 날짜를 골라 주세요.";
+    box.innerHTML = `<div class="empty">달력에서 날짜를 끌거나<br>시작일과 종료일을 차례로 누르면 여기에 계산됩니다.</div>`;
     return;
   }
-  const pctS2 = p => p==null ? "—" : Math.round(p*100)+"%";
+  const pc2 = p => p==null ? "—" : Math.round(p*100)+"%";
+  if(lede) lede.textContent = `${D.label(t.days[0])} ~ ${D.label(t.days[t.days.length-1])} · ${t.days.length}일`;
 
-  const cells = t.per.map(d=>{
-    const p = d.p;
-    return `<div class="tday">
-      <div class="tdate">${D.label(d.date)}</div>
-      <div class="tpct num ${cls(p)}">${pctS2(p)}</div>
-      <div class="tbar"><i class="${bgc(p)}" style="width:${p?Math.round(p*100):0}%"></i></div>
-      <div class="tkind">${d.kind==="clim"?"역대 평균":"예보"}</div>
-    </div>`;
-  }).join("");
-
-  const head = t.atLeastOne==null ? "" :
-    `<div class="hero2">
-       <div class="herolbl">${t.days.length}일 중 <b>최소 하루</b>는 뜰 가능성</div>
-       <div class="heropct num ${cls(t.atLeastOne)}">${pctS2(t.atLeastOne)}</div>
-       <div class="herosub">지난 ${t.nY}년간 같은 날짜 ${t.days.length}일을 통째로 봤을 때,
-         하루도 못 뜬 해는 <b>${t.zero}번</b>이었습니다. 평균 <b>${t.avgFlew==null?"—":t.avgFlew.toFixed(1)}일</b> 떴습니다.</div>
-     </div>`;
+  const bar = p => p==null ? "var(--line)" : (p>=.6 ? "var(--amber)" : p>=.4 ? "var(--sky3)" : "var(--clay)");
+  const cells = t.per.map(d=>`<div class="tday">
+      <div class="dt">${D.label(d.date)}</div>
+      <div class="pv num">${pc2(d.p)}</div>
+      <div class="bb"><i style="width:${d.p?Math.round(d.p*100):0}%;background:${bar(d.p)}"></i></div>
+      <div class="kd">${d.kind==="clim"?"예년":"예보"}</div>
+    </div>`).join("");
 
   const acc = tripAccuracy(t.days);
-  let accHtml = "";
-  if(acc){
-    const lvl = acc.mae<=0.08 ? ["g","잘 맞는 편"] : acc.mae<=0.15 ? ["m","보통"] : ["b","잘 안 맞는 편"];
-    const MN = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
-    const detail = acc.parts.map(p=>
-      `${MN[p.m-1]}은 이 앱이 ${Math.round(p.mod*100)}%로 보는데 실제로는 ${Math.round(p.obs*100)}%였습니다`
-    ).join(" · ");
-    accHtml = `<div class="acc"><span class="dot ${lvl[0]}">●</span>
-        이 시기 예측 정확도 <b>${lvl[1]}</b> · 평균 ${Math.round(acc.mae*100)}%p 차이</div>
-      <div class="note" style="margin-top:10px">${esc(detail)}.
-        ${acc.mae>0.15 ? "차이가 큰 달이라 위 숫자는 넉넉히 감안해서 보세요." : "실제와 크게 벗어나지 않는 시기입니다."}</div>`;
+  let chips = "";
+  if(t.neff != null){
+    chips += `<span class="chip">하루 평균 <b>${pc2(t.pBar)}</b></span>`;
+    chips += `<span class="chip">실질 독립 기회 <b>${t.neff.toFixed(1)}일</b> / ${t.days.length}일</span>`;
   }
-  box.innerHTML = head + `<div class="tdays">${cells}</div>` + accHtml +
-    `<div class="note">여행이 여러 날이면 하루하루 확률보다 이 숫자가 중요합니다.
-       벌룬 투어는 취소되면 보통 다음 날로 넘겨주기 때문에, 기간 중 한 번만 뜨면 되니까요.
-       <b>일정 앞쪽에 예약할수록</b> 밀렸을 때 다시 시도할 날이 남습니다.</div>`;
+  if(acc){
+    const lvl = acc.mae<=0.08 ? "잘 맞는 편" : acc.mae<=0.15 ? "보통" : "잘 안 맞는 편";
+    chips += `<span class="chip">이 시기 정확도 <b>${esc(lvl)}</b> · ±${Math.round(acc.mae*100)}%p</span>`;
+  }
+
+  box.innerHTML = `
+    <div style="text-align:center">
+      <div class="vhead">${t.days.length}일 중 <b>최소 하루</b>는 뜰 가능성</div>
+      <div class="vnum num ${cls(t.atLeastOne)}" style="font-size:60px;margin-top:4px">${pc2(t.atLeastOne)}</div>
+    </div>
+    <div class="tdays">${cells}</div>
+    <div class="chips">${chips}</div>
+    <div class="note">
+      날씨는 며칠씩 몰려 다닙니다. ${t.days.length}일을 잡아도 서로 다른 기회는
+      <b>${t.neff==null?"—":t.neff.toFixed(1)}번</b>뿐이라, 확률을 단순히 곱한 값(${pc2(t.indep)})보다 낮게 잡았습니다.
+      벌룬 투어는 취소되면 보통 다음 날로 넘겨주니 <b>일정 앞쪽에 예약할수록</b> 다시 시도할 날이 남습니다.
+    </div>`;
 }
 
+/* ── 오늘의 판정: 하나의 답 + 어디서 나온 숫자인지 3분할 ── */
+const WORD = p => p==null ? ["—",""]
+  : p>=.8 ? ["아주 좋음","오늘 같은 날이면 거의 뜹니다"]
+  : p>=.6 ? ["괜찮음","웬만하면 뜨는 조건입니다"]
+  : p>=.4 ? ["반반","전날 밤에 꼭 확인하세요"]
+  : p>=.2 ? ["나쁨","취소될 가능성이 큽니다"]
+  :         ["아주 나쁨","오늘은 거의 못 뜹니다"];
+
+function renderBig(){
+  const { clim, F } = STATE;
+  const c = F ? combine(TODAY, F, clim) : null;
+  const p = capP(c && c.p);
+  const rec = flightLog[TODAY];
+  const [w, line] = WORD(p);
+  const pc = capP(c && c.pc), pf = capP(c && c.pf);
+
+  let head = `오늘 ${D.label(TODAY)}`;
+  let sub = line;
+  if(rec && ["official","scrape","manual"].includes(rec.src)){
+    sub = rec.s==="flew" ? "실제로 <b>떴습니다</b>. 아래 숫자는 오늘 아침 조건으로 계산한 값입니다."
+                         : "실제로 <b>취소됐습니다</b>. 아래 숫자는 오늘 아침 조건으로 계산한 값입니다.";
+  }
+
+  $("#verdict").innerHTML = `
+    <div class="vhead">${esc(head)}</div>
+    <div class="vmain">
+      <span class="vnum num ${cls(p)}">${p==null?"—":Math.round(p*100)+"%"}</span>
+      <span class="vword ${cls(p)}">${esc(w)}</span>
+    </div>
+    <div class="vsub">${sub}</div>
+    <div class="meter"><i style="width:${p?Math.round(p*100):0}%;background:${p==null?"var(--line)":(p>=.6?"var(--amber)":p>=.4?"var(--sky3)":"var(--clay)")}"></i></div>
+    <div class="split">
+      <div class="sp"><div class="k"><i style="background:var(--ink2);opacity:.5"></i>예년 평균</div>
+        <div class="v num">${pc==null?"—":Math.round(pc*100)+"%"}</div>
+        <div class="d">15년 같은 날짜</div></div>
+      <div class="sp ${pf==null?"off":""}"><div class="k"><i style="background:var(--amber)"></i>실제 예보</div>
+        <div class="v num">${pf==null?"—":Math.round(pf*100)+"%"}</div>
+        <div class="d">${pf==null?"예보 범위 밖":(c&&c.n>1?`${c.n}개 시나리오`:"단일 모델")}</div></div>
+      <div class="sp"><div class="k"><i style="background:var(--ink)"></i>하이브리드</div>
+        <div class="v num">${p==null?"—":Math.round(p*100)+"%"}</div>
+        <div class="d">${c&&c.kind==="clim"?"예년만 사용":`예보 ${Math.round((c&&c.w!=null?c.w:1)*100)}% 반영`}</div></div>
+    </div>`;
+}
+
+/* ── 16일 차트: 예보(면+선) vs 예년(점선) ── */
 function renderStrip(){
   const { clim, F } = STATE;
-  if(!F){ $("#strip").innerHTML = '<span class="log">예보 없음</span>'; return; }
-  let html = "";
+  const svg = $("#chart"); if(!svg) return;
+  if(!F){ svg.innerHTML = ''; return; }
+
+  // 폭을 재서 그린다. preserveAspectRatio="none" 로 늘리면 축 글자가 가로로 눌린다.
+  const W = Math.max(320, Math.round(svg.clientWidth || svg.parentNode.clientWidth || 760));
+  const H = 190, L = 30, R = 12, T = 14, B = 26;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const pts = [];
   for(let i=0;i<16;i++){
     const k = D.add(TODAY,i);
     const c = combine(k, F, clim);
-    const p = capP(c.p);
-    const h = p==null?2:Math.max(3, Math.round(p*90));
-    html += `<div class="d"><div class="col"><i class="${bgc(p)}" style="height:${h}px;${inTrip(k)?"outline:2px solid var(--trip);outline-offset:1px":""}"></i></div>
-      <div class="vv num ${cls(p)}">${pctS(p)}</div><div class="dt">${D.label(k)}</div></div>`;
+    pts.push({ k, i, p: capP(c.p), pc: capP(c.pc), pf: capP(c.pf), kind: c.kind, trip: inTrip(k) });
   }
-  $("#strip").innerHTML = html;
-  if(STATE.ens){
-    $("#fcnote").innerHTML = `유럽 기상센터가 조금씩 다른 조건으로 <b>${STATE.ens.members}번</b> 돌린 예보를 씁니다.
-      그중 몇 번이 "뜰 수 있다"고 나오는지가 곧 위 확률입니다.`;
-    return;
+  const x = i => L + i*(W-L-R)/15;
+  const y = v => T + (1-v)*(H-T-B);
+
+  let g = "";
+  for(const v of [0,.25,.5,.75,1]){
+    g += `<line class="grid" x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`;
+    g += `<text class="axis" x="2" y="${(y(v)+3.5).toFixed(1)}">${Math.round(v*100)}</text>`;
   }
-  const n = F.okModels.length;
-  $("#fcnote").innerHTML = n
-    ? `기상 모델 <b>${n}개</b>의 예보를 종합했습니다: ${esc(F.okModels.join(", "))}.`
-    : `모델을 하나밖에 못 불러왔습니다. 확률이 평소보다 거칠 수 있습니다.`;
+  // 여행 기간 음영
+  const tp = pts.filter(p=>p.trip);
+  if(tp.length) g += `<rect x="${(x(tp[0].i)-10).toFixed(1)}" y="${T}" width="${(x(tp[tp.length-1].i)-x(tp[0].i)+20).toFixed(1)}"
+      height="${H-T-B}" fill="var(--plum)" opacity=".1" rx="8"/>`;
+
+  const okP = pts.filter(p=>p.p!=null);
+  const line = arr => arr.map((p,j)=>`${j?"L":"M"}${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ");
+  const fcArr = okP.map(p=>({i:p.i, v:p.p}));
+  const clArr = pts.filter(p=>p.pc!=null).map(p=>({i:p.i, v:p.pc}));
+
+  if(fcArr.length){
+    g += `<path class="fc-area" d="${line(fcArr)} L${x(fcArr[fcArr.length-1].i).toFixed(1)},${y(0)} L${x(fcArr[0].i).toFixed(1)},${y(0)} Z"/>`;
+    g += `<path class="fc-line" d="${line(fcArr)}"/>`;
+  }
+  if(clArr.length) g += `<path class="cl-line" d="${line(clArr)}"/>`;
+  for(const p of okP) g += `<circle class="dot" cx="${x(p.i).toFixed(1)}" cy="${y(p.p).toFixed(1)}" r="${p.i===0?5:3.5}"/>`;
+
+  for(let i=0;i<16;i+=3){
+    g += `<text class="axis" x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${D.label(pts[i].k)}</text>`;
+  }
+  g += `<line class="cross hide" id="cross" y1="${T}" y2="${H-B}"/>`;
+  for(const p of pts) g += `<rect class="hit" data-i="${p.i}" x="${(x(p.i)-13).toFixed(1)}" y="0" width="26" height="${H}"/>`;
+  svg.innerHTML = g;
+
+  // 마우스를 얹으면 그 날 숫자를 띄운다
+  const tip = $("#tip"), cross = svg.querySelector("#cross");
+  svg.querySelectorAll(".hit").forEach(el=>{
+    const show = () => {
+      const p = pts[+el.dataset.i]; if(!p) return;
+      cross.classList.remove("hide");
+      cross.setAttribute("x1", x(p.i)); cross.setAttribute("x2", x(p.i));
+      tip.style.opacity = 1;
+      tip.style.left = Math.min(W-150, Math.max(0, x(p.i) - 68)) + "px";
+      tip.style.top = "6px";
+      tip.innerHTML = `<b>${D.label(p.k)}</b> · 종합 ${p.p==null?"—":Math.round(p.p*100)+"%"}<br>`
+        + `예년 ${p.pc==null?"—":Math.round(p.pc*100)+"%"}`
+        + (p.pf!=null ? ` · 예보 ${Math.round(p.pf*100)}%` : " · 예보 없음");
+    };
+    el.addEventListener("pointerenter", show);
+    el.addEventListener("pointermove", show);
+  });
+  svg.addEventListener("pointerleave", ()=>{ tip.style.opacity = 0; cross.classList.add("hide"); });
+
+  const n = STATE.ens ? STATE.ens.members : F.okModels.length;
+  $("#fcnote").innerHTML = STATE.ens
+    ? `유럽 기상센터가 조건을 조금씩 바꿔 <b>${n}번</b> 돌린 예보를 씁니다. 그중 몇 번이 "뜰 수 있다"고 나오는지가 주황 선입니다.`
+    : (n ? `기상 모델 <b>${n}개</b>를 종합했습니다.` : `모델을 하나밖에 못 불러왔습니다. 값이 평소보다 거칠 수 있습니다.`);
 }
 
 function monthGrid(year, month, cellFn, opt){
@@ -1251,8 +1332,11 @@ function renderMonths(){
           if(k===hi) cls2.push("tripB");
         }
         if(SELA===k && !SELB) cls2.push("anchor");
-        return `<div class="${cls2.join(" ")}" data-k="${k}" title="${k} · ${isFc?"일기예보 반영":"역대 평균"}">
-          <span class="n">${d}</span><span class="p num ${cls(p)}">${p==null?"—":Math.round(p*100)}</span>
+        // 색은 배경 틴트로만 쓰고 숫자는 잉크로 둔다 — 숫자를 주황으로 칠했더니 대비가 3:1 밖에 안 됐다
+        const tint = p==null ? "" :
+          `background:color-mix(in srgb, ${p>=.5?"var(--amber)":"var(--clay)"} ${Math.round(Math.abs(p-.5)*2*26+6)}%, var(--tint))`;
+        return `<div class="${cls2.join(" ")}" data-k="${k}" style="${tint}" title="${k} · ${isFc?"실제 예보 반영":"예년 평균"}${p==null?"":" · "+Math.round(p*100)+"%"}">
+          <span class="n">${d}</span><span class="p num">${p==null?"—":Math.round(p*100)}</span>
           ${isFc?'<span class="fc"></span>':''}</div>`;
       }, { hidePastWeeks:true }) + "</div>";
   }
@@ -1475,6 +1559,8 @@ $("#fileImport").onchange = e => {
   };
   rd.readAsText(f);
 };
+let _rz;
+addEventListener("resize", () => { clearTimeout(_rz); _rz = setTimeout(() => { if(STATE.F) renderStrip(); }, 180); });
 $("#btnRefresh").onclick = () => boot(false);
 $("#btnClearTrip").onclick = () => {
   cfg.tripStart = ""; cfg.tripEnd = ""; SELA = SELB = null;
