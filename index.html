@@ -14,12 +14,15 @@
   --clay:#8c3b2f;    /* 취소 */
   --plum:#6d5480;
   --sky1:#f5d5b2; --sky2:#e5ac8c; --sky3:#bb7f80; --sky4:#6a5476; --rock:#c6b096;
+  /* 기록 칸 배경 — 글자(--ink)와 10:1 이상으로 벌려 날짜가 또렷하게 보이도록 */
+  --amberT:#efd7b4; --clayT:#ecc9c0;
 }
 @media (prefers-color-scheme:dark){
   :root{
     --bg:#15121b; --panel:#1e1a26; --tint:#272130; --line:#3a3245;
     --ink:#f2ece3; --ink2:#c3b8ab; --dim:#8f8496;
     --amber:#e0a463; --clay:#e08a76; --plum:#b598c6;
+    --amberT:#4a3a22; --clayT:#4a2c26;
     --sky1:#3a2b40; --sky2:#583c4c; --sky3:#7a4d52; --sky4:#241d30; --rock:#2b2437;
   }
 }
@@ -163,22 +166,45 @@ table.links td:first-child{white-space:nowrap;font-weight:600}
 .nl{font-size:12px;color:var(--dim)}
 .nv{font-size:20px}
 
-/* 운항 기록 — 칸을 키웠다 */
-.grid9{display:flex;gap:7px;align-items:flex-start;overflow-x:auto;padding-bottom:6px}
-.gdow{display:grid;grid-template-rows:repeat(7,1fr);gap:4px;padding-top:19px;flex:0 0 auto}
-.gd{height:22px;font-size:10px;color:var(--dim);display:flex;align-items:center}
-.gmain{flex:1;min-width:0}
-.ghead{display:flex;gap:4px;height:15px}
-.ghead .gh{width:22px;font-size:10px;color:var(--dim);flex:0 0 auto}
-.gbody{display:flex;gap:4px}
-.gcol{display:grid;grid-template-rows:repeat(7,1fr);gap:4px}
-.gc{width:22px;height:22px;border-radius:6px;background:var(--tint);cursor:pointer}
-.gc.flew{background:var(--amber)}
-.gc.canc{background:var(--clay)}
-.gc.guess{background:var(--line)}
-.gc.none{background:transparent;cursor:default}
-.gc.today{box-shadow:0 0 0 2px var(--ink)}
-.gc:hover:not(.none){outline:2px solid var(--ink);outline-offset:1px}
+/* 지금 괴레메 — 매번 새로 받아오는 실시간 관측 */
+.nowwrap{margin-top:16px;border-top:1px solid var(--line);padding-top:13px}
+.nowhead{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--dim);margin-bottom:9px}
+.nowhead b{font-size:12.5px;color:var(--ink2);font-weight:600}
+.nowhead .dotlive{width:6px;height:6px;border-radius:50%;background:var(--amber);flex:0 0 auto;
+  animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.nowrow{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.nc{background:var(--tint);border-radius:11px;padding:9px 4px;text-align:center}
+.nc .k{font-size:10.5px;color:var(--dim)}
+.nc .v{font-size:16px;margin-top:3px;font-variant-numeric:tabular-nums}
+.nc .v small{font-size:10.5px;color:var(--dim);margin-left:1px}
+.nc.over{background:var(--clayT)}
+.nc.over .k,.nc.over .v{color:var(--ink)}
+.nowfoot{font-size:11.5px;color:var(--dim);margin-top:9px;line-height:1.5}
+
+/* 운항 기록 — 한 주가 한 줄. 날짜가 칸 안에 그대로 보인다 */
+.lhead,.lrow{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.lhead{margin-bottom:6px}
+.lhead div{text-align:center;font-size:11px;color:var(--dim)}
+.lrow{margin-bottom:5px}
+.lc{aspect-ratio:1/.8;border-radius:10px;background:var(--tint);cursor:pointer;position:relative;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    color:var(--ink);overflow:hidden;user-select:none;-webkit-tap-highlight-color:transparent}
+.lc b{font-size:14px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.lc i{font-style:normal;font-size:10px;line-height:1;color:var(--ink2)}
+.lc::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:transparent}
+.lc.flew{background:var(--amberT)}
+.lc.flew::after{background:var(--amber)}
+.lc.canc{background:var(--clayT)}
+.lc.canc::after{background:var(--clay)}
+.lc.guess{background:var(--tint);box-shadow:inset 0 0 0 1px var(--line)}
+.lc.guess i{color:var(--dim)}
+.lc.none{background:transparent;cursor:default}
+.lc.none b,.lc.none i{opacity:.22}
+.lc.today{box-shadow:0 0 0 2px var(--ink)}
+.lc:active:not(.none){transform:scale(.94)}
+.lmon{font-size:11.5px;color:var(--dim);margin:12px 0 5px}
+.lmon:first-child{margin-top:0}
 .scroll{overflow-x:auto}
 .g{color:var(--amber)}.m{color:var(--ink2)}.b{color:var(--clay)}
 .bg-g{background:var(--amber)}.bg-m{background:var(--sky3)}.bg-b{background:var(--clay)}
@@ -213,9 +239,8 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
   .nxrow{gap:7px}
   .nx{padding:9px 11px}
   .nv{font-size:17px}
-  .gc,.gd{height:20px}
-  .gc{width:20px}
-  .ghead .gh{width:20px}
+  .lc b{font-size:13px}
+  .lc i{font-size:9px}
   .tday{padding:9px 4px;border-radius:11px}
   .tday .pv{font-size:18px}
   .months{grid-template-columns:1fr;gap:16px}
@@ -315,7 +340,8 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
   <summary>운항 기록<span class="hint" id="logStat"></span></summary>
   <div class="dbody">
     <div class="note" style="margin-top:0">
-      실제로 떴는지 안 떴는지 쌓아두는 곳이에요. <b>주황은 뜬 날, 붉은색은 안 뜬 날</b>, 회색은 날씨만 보고 짐작한 날입니다.
+      실제로 떴는지 안 떴는지 쌓아두는 곳이에요. 칸마다 날짜와 결과가 그대로 적혀 있습니다.
+      아래줄이 <b>주황이면 뜬 날, 붉으면 안 뜬 날</b>, 테두리만 있으면 날씨만 보고 짐작한 날이에요.
       칸을 누르면 <b>뜸 → 안 뜸 → 지움</b> 순으로 바뀌고, 고칠수록 예측이 정확해집니다.
     </div>
     <div class="row" style="margin:14px 0 12px">
@@ -327,9 +353,9 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
     </div>
     <div id="logcal"></div>
     <div class="legend">
-      <span><i style="background:var(--amber)"></i>떴음</span>
-      <span><i style="background:var(--clay)"></i>안 떴음</span>
-      <span><i style="background:var(--line)"></i>짐작</span>
+      <span><i style="background:var(--amberT);box-shadow:inset 0 -3px 0 var(--amber)"></i>떴음</span>
+      <span><i style="background:var(--clayT);box-shadow:inset 0 -3px 0 var(--clay)"></i>안 떴음</span>
+      <span><i style="background:var(--tint);box-shadow:inset 0 0 0 1px var(--line)"></i>짐작</span>
       <span><i style="background:var(--tint)"></i>모름</span>
     </div>
     <div class="note warn" id="scrapenote">
@@ -438,7 +464,8 @@ const LSK = { cfg:"cb.cfg", clim:"cb.clim", log:"cb.log", seed:"cb.seed3", fc:"c
 const PAST_DAYS = 92;          // 검증용 라벨(7~8월 실측)의 기상을 덮으려면 이만큼 필요하다.
                                // 21일로 줄여봤더니 채점 표본이 46일→21일로 반토막 나서 되돌렸다.
                                // 호출 절감의 대부분은 기후값 정적화에서 나오므로 여기서 아낄 이유가 없다.
-const FC_TTL_MIN = 180;        // 예보 캐시 3시간. 원본 모델도 하루 4번만 갱신된다.
+const FC_TTL_MIN = 40;         // 예보 캐시 40분. 원본 모델 자체가 1시간 간격이라 그보다 촘촘할 이유가 없다.
+let FORCE_FC = false;          // '새로고침'을 누르면 캐시를 무시하고 다시 받는다
 
 /* ────────────────────────────────────────────────────────────
    실측 시드: balloonstatus.com 공개 기록 (2026-07-05 ~ 08-26)
@@ -868,6 +895,24 @@ const MODELS = [
   ["ecmwf_ifs025","ECMWF"], ["gfs_seamless","GFS"], ["icon_seamless","ICON"],
   ["metno_seamless","MET Norway"], ["gem_seamless","GEM"], ["ukmo_seamless","UK Met"]
 ];
+/* 지금 이 순간의 괴레메 상태. 캐시하지 않고 열 때마다 새로 받는다 (호출 1건).
+   확률은 '내일 일출 무렵'을 보지만, 사람은 창밖을 보고 앱을 켜기 때문에
+   지금 값이 화면에 없으면 숫자가 현실과 따로 노는 것처럼 느껴진다. */
+async function buildNow(){
+  try{
+    const j = await getJSON(OM("https://api.open-meteo.com/v1/forecast", Object.assign({}, COMMON, {
+      current: "temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,cloud_cover"
+    })), 20000);
+    const c = j && j.current; if(!c) return null;
+    return { at: Date.now(), time: c.time,
+             t2: c.temperature_2m, w10: c.wind_speed_10m, gu: c.wind_gusts_10m,
+             d10: c.wind_direction_10m, pr: c.precipitation, cc: c.cloud_cover };
+  }catch(e){ con("실시간 관측 실패: " + e.message); return null; }
+}
+
+const COMPASS = ["북","북동","동","남동","남","남서","서","북서"];
+const dirName = d => d==null ? "" : COMPASS[Math.round(((d%360)+360)%360/45)%8];
+
 async function buildForecast(s0){
   // 일출은 직접 계산한다 (API 호출 없음)
   const sun = {};
@@ -1230,6 +1275,29 @@ function renderBig(){
       <span class="nv num ${cls(pp)}">${pp==null?"—":Math.round(pp*100)+"%"}</span></div>`;
   }).join("");
 
+  // 지금 이 시각 괴레메. 규정 한도(지상풍 10kt)를 넘긴 칸은 붉게 칠한다.
+  const nw = STATE.now;
+  let nowbar = "";
+  if(nw){
+    const hm = nw.time ? nw.time.slice(11,16) : "";
+    const n1 = (v,d) => v==null ? "—" : (Math.round(v*10)/10).toFixed(d==null?0:d);
+    const cell = (k,v,u,over) =>
+      `<div class="nc ${over?"over":""}"><div class="k">${k}</div><div class="v num">${v}<small>${u}</small></div></div>`;
+    nowbar = `
+      <div class="nowwrap">
+        <div class="nowhead"><i class="dotlive"></i><b>지금 괴레메</b>
+          <span>${hm ? hm + " 관측 · 방금 받아왔어요" : "방금 받아왔어요"}</span></div>
+        <div class="nowrow">
+          ${cell("지상풍", (dirName(nw.d10)+" ") + n1(nw.w10), "kt", nw.w10 != null && nw.w10 > 10)}
+          ${cell("돌풍", n1(nw.gu), "kt", nw.gu != null && nw.gu > 15)}
+          ${cell("구름", n1(nw.cc), "%")}
+          ${cell("기온", n1(nw.t2), "°")}
+        </div>
+        <div class="nowfoot">위 확률은 <b>내일 아침 일출 무렵</b>(이륙 창 ${cfg.winPre}분 전~${cfg.winPost}분 후)을 본 값이에요.
+          낮 바람이 세도 새벽엔 잦아드는 날이 많아서, 지금 값과 다를 수 있습니다.</div>
+      </div>`;
+  }
+
   $("#verdict").innerHTML = `
     <div class="vhead">오늘 ${D.label(TODAY)} (${DOW[D.dow(TODAY)]})</div>
     <div class="vmain">
@@ -1243,7 +1311,7 @@ function renderBig(){
       <div class="sp"><div class="k">예년 이맘때</div><div class="v num">${pc==null?"—":Math.round(pc*100)+"%"}</div></div>
       <div class="sp ${pf==null?"off":""}"><div class="k">예보</div><div class="v num">${pf==null?"—":Math.round(pf*100)+"%"}</div></div>
       <div class="sp"><div class="k">둘을 섞은 값</div><div class="v num">${p==null?"—":Math.round(p*100)+"%"}</div></div>
-    </div>`;
+    </div>${nowbar}`;
 }
 
 /* ── 16일 차트: 예보(면+선) vs 예년(점선) ── */
@@ -1427,44 +1495,43 @@ function wireCalendar(){
   host.onpointercancel = () => { DRAG = false; SELB = null; renderMonths(); };
 }
 
-/* 운항 기록은 월 달력 3개를 쌓으면 화면을 다 잡아먹는다.
-   14px 짜리 칸을 요일 7행으로 세워 90일을 한 줌에 담는다. */
+/* 운항 기록 — 한 주가 한 줄, 날짜가 칸 안에 그대로 찍힌다.
+   예전엔 22px 정사각형에 날짜를 title 로만 달아뒀는데,
+   휴대폰에는 마우스오버가 없어서 사실상 날짜가 없는 표였다. */
 function renderLog(){
-  const WEEKS = 9;                                  // 최근 아홉 주만. 예전엔 15주라 칸이 너무 작았다
+  const WEEKS = 8;                                   // 최근 여덟 주
   const start = D.add(TODAY, -(WEEKS*7 - 1 + D.dow(TODAY)));
-  const DOW = ["일","","화","","목","","토"];
-  const cols = [];
-  let col = null;
-  for(let k=start; k<=TODAY; k=D.add(k,1)){
-    if(!col || D.dow(k) === 0){ col = { first:k, cells:Array(7).fill(null) }; cols.push(col); }
-    col.cells[D.dow(k)] = k;
-  }
+  const DOW = ["일","월","화","수","목","금","토"];
   const MN = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
-  let head = "";
-  cols.forEach((c,i)=>{
-    const m = +c.first.slice(5,7);
-    const prev = i ? +cols[i-1].first.slice(5,7) : null;
-    head += `<div class="gh">${m!==prev ? MN[m-1] : ""}</div>`;
-  });
 
-  const body = cols.map(c => `<div class="gcol">` + c.cells.map(k => {
-    if(!k) return `<div class="gc none"></div>`;
-    const r = flightLog[k];
-    const guess = r && r.src === "auto";
-    let cl = "gc", tip = "모름";
-    if(r && !guess){ cl += r.s==="flew" ? " flew" : " canc"; tip = r.s==="flew" ? "떴음" : "안 떴음"; }
-    else if(guess){ cl += " guess"; tip = "짐작: " + (r.s==="flew" ? "떴을 듯" : "안 떴을 듯"); }
-    if(k === TODAY) cl += " today";
-    return `<div class="${cl}" data-k="${k}" title="${D.label(k)} · ${tip}"></div>`;
-  }).join("") + `</div>`).join("");
+  let html = `<div class="lhead">${DOW.map(d=>`<div>${d}</div>`).join("")}</div>`;
+  let shownMon = null;
 
-  $("#logcal").innerHTML =
-    `<div class="grid9">
-       <div class="gdow">${DOW.map(d=>`<div class="gd">${d}</div>`).join("")}</div>
-       <div class="gmain"><div class="ghead">${head}</div><div class="gbody">${body}</div></div>
-     </div>`;
+  for(let w=0; w<WEEKS; w++){
+    // 그 주에 처음 등장하는 달이 바뀌면 머리글을 하나 끼운다
+    const mid = D.add(start, w*7 + 3);
+    const m = +mid.slice(5,7);
+    if(m !== shownMon){ html += `<div class="lmon">${+mid.slice(0,4)}년 ${MN[m-1]}</div>`; shownMon = m; }
 
-  $("#logcal").querySelectorAll(".gc[data-k]").forEach(el => {
+    let cells = "";
+    for(let d=0; d<7; d++){
+      const k = D.add(start, w*7 + d);
+      const dd = +k.slice(8,10);
+      if(k > TODAY){ cells += `<div class="lc none"><b>${dd}</b><i>—</i></div>`; continue; }
+      const r = flightLog[k];
+      const guess = r && r.src === "auto";
+      let cl = "lc", word = "·";
+      if(r && !guess){ cl += r.s === "flew" ? " flew" : " canc"; word = r.s === "flew" ? "떴음" : "안 뜸"; }
+      else if(guess){ cl += " guess"; word = r.s === "flew" ? "떴을 듯" : "안 떴을 듯"; }
+      if(k === TODAY) cl += " today";
+      cells += `<div class="${cl}" data-k="${k}" title="${D.label(k)}"><b>${dd}</b><i>${word}</i></div>`;
+    }
+    html += `<div class="lrow">${cells}</div>`;
+  }
+
+  $("#logcal").innerHTML = html;
+
+  $("#logcal").querySelectorAll(".lc[data-k]").forEach(el => {
     el.onclick = () => {
       const k = el.dataset.k, r = flightLog[k];
       if(!r || r.src === "auto") flightLog[k] = { s:"flew", src:"manual" };
@@ -1608,7 +1675,7 @@ $("#fileImport").onchange = e => {
 };
 let _rz;
 addEventListener("resize", () => { clearTimeout(_rz); _rz = setTimeout(() => { if(STATE.F) renderStrip(); }, 180); });
-$("#btnRefresh").onclick = () => boot(false);
+$("#btnRefresh").onclick = () => { FORCE_FC = true; boot(false); };
 { const cs = $("#calsect"); if(cs) cs.addEventListener("toggle", () => { if(cs.open) cs.dataset.touched = "1"; }); }
 $("#btnClearTrip").onclick = () => {
   cfg.tripStart = ""; cfg.tripEnd = ""; SELA = SELB = null; ANCHORED = false;
@@ -1890,12 +1957,19 @@ async function boot(force){
 
   const s0 = clim ? clim.s0 : 3.0;
 
-  // 3시간 이내에 받아둔 예보가 있으면 재사용한다 (새로고침 남발로 한도 축내지 않도록)
+  // 지금 이 순간의 관측은 항상 새로 받는다 (캐시 없음)
+  STATE.now = await buildNow();
+  diag("실시간 관측", !!STATE.now, STATE.now
+    ? `${(STATE.now.time||"").slice(11,16)} 기준 · 지상풍 ${STATE.now.w10}kt · 돌풍 ${STATE.now.gu}kt`
+    : "못 받았어요 — 예보만으로 계산합니다");
+
+  // 40분 이내에 받아둔 예보가 있으면 재사용한다 (새로고침 남발로 한도 축내지 않도록)
   const fcCache = load(LSK.fc, null);
-  const fresh = fcCache && fcCache.t && (Date.now() - fcCache.t) < FC_TTL_MIN*60000 && !force;
-  let F, ens;
+  const fresh = fcCache && fcCache.t && (Date.now() - fcCache.t) < FC_TTL_MIN*60000 && !force && !FORCE_FC;
+  FORCE_FC = false;
+  let F, ens, fcAt;
   if(fresh){
-    F = fcCache.F; ens = fcCache.ens;
+    F = fcCache.F; ens = fcCache.ens; fcAt = fcCache.t;
     const mins = Math.round((Date.now()-fcCache.t)/60000);
     diag("예보", true, `${mins}분 전에 받아둔 예보 재사용 (API 호출 0건)`);
   } else {
@@ -1903,8 +1977,10 @@ async function boot(force){
     ens = await buildEnsemble(s0);
     if(!ens) await buildDeterministic(F, s0);      // 앙상블 실패했을 때만 개별 모델
     else diag("개별 모델 예보", true, "앙상블이 있어 생략 (호출 절약)");
-    try{ save(LSK.fc, { t: Date.now(), F, ens }); }catch(e){}
+    fcAt = Date.now();
+    try{ save(LSK.fc, { t: fcAt, F, ens }); }catch(e){}
   }
+  STATE.fcAt = fcAt; STATE.fcFresh = !fresh;
   STATE.F = F; STATE.ens = ens;
 
   // 라벨로 채점 → 이기면 학습 모델로 교체 → 그 결과로 다시 렌더
@@ -1935,9 +2011,15 @@ async function boot(force){
   diag("API 호출 수", true, `이번 실행 ${API_CALLS}건` +
     (API_CALLS<=6 ? " — 무료 한도(하루 10,000건) 대비 매우 적습니다" : " — 캐시가 없어 조금 많이 나갔습니다"));
 
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2,"0"), mm = String(now.getMinutes()).padStart(2,"0");
-  $("#freshness").innerHTML = `<b>${hh}:${mm}</b> 기준 예보`;
+  {
+    const hm = t => { const d=new Date(t); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
+    const age = STATE.fcAt ? Math.round((Date.now()-STATE.fcAt)/60000) : null;
+    const obs = STATE.now ? `관측 <b>방금</b>` : `관측 <b>실패</b>`;
+    const fc  = STATE.fcAt
+      ? (STATE.fcFresh ? `예보 <b>방금</b>` : `예보 <b>${age}분 전</b>`)
+      : `예보 <b>없음</b>`;
+    $("#freshness").innerHTML = `${obs} · ${fc} <span style="opacity:.7">(${hm(Date.now())})</span>`;
+  }
 
   // 기록이 하나도 없으면 첫 실행 시 자동 채움
   if(!Object.keys(flightLog).length) backfill();
