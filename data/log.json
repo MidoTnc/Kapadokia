@@ -383,12 +383,18 @@
    "src": "scrape",
    "agree": false,
    "note": "balloonstatus:flew, balloonstatus2:flew, epicturkey:cancelled"
+  },
+  "2026-08-31": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus:cancelled, balloonstatus2:cancelled, epicturkey:cancelled"
   }
  },
- "updated": "2026-08-30T14:07:20.812Z",
+ "updated": "2026-08-31T09:05:14.965Z",
  "counts": {
-  "total": 64,
-  "measured": 4,
+  "total": 65,
+  "measured": 5,
   "flew": 58
  }
 }
