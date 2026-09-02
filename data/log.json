@@ -395,12 +395,18 @@
    "src": "scrape",
    "agree": true,
    "note": "balloonstatus:flew, balloonstatus2:flew, epicturkey:flew"
+  },
+  "2026-09-02": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus:flew, balloonstatus2:flew, epicturkey:flew"
   }
  },
- "updated": "2026-09-01T13:48:48.531Z",
+ "updated": "2026-09-02T07:28:45.997Z",
  "counts": {
-  "total": 66,
-  "measured": 6,
-  "flew": 59
+  "total": 67,
+  "measured": 7,
+  "flew": 60
  }
 }
