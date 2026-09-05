@@ -353,18 +353,30 @@
    "src": "auto",
    "est": 4,
    "note": "s=2.94"
+  },
+  "2026-07-07": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-08": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
   }
  },
  "lastScrape": {
-  "at": "2026-09-05T08:54:21.063Z",
-  "sitesRead": 2,
+  "at": "2026-09-05T12:14:05.646Z",
+  "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-09-05T08:54:21.367Z",
+ "updated": "2026-09-05T12:14:06.700Z",
  "counts": {
-  "total": 59,
+  "total": 61,
   "measured": 15,
-  "flew": 49
+  "flew": 51
  }
 }
