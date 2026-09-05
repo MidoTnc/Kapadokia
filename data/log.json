@@ -1,1 +1,370 @@
-{"log":{}}
+{
+ "log": {
+  "2026-09-05": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus:flew, balloonstatus2:flew"
+  },
+  "2026-09-04": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:flew"
+  },
+  "2026-09-03": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:flew"
+  },
+  "2026-09-02": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:flew"
+  },
+  "2026-09-01": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:flew"
+  },
+  "2026-08-31": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:cancelled"
+  },
+  "2026-08-30": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:cancelled"
+  },
+  "2026-08-29": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:cancelled"
+  },
+  "2026-08-28": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:cancelled"
+  },
+  "2026-08-27": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:flew"
+  },
+  "2026-08-26": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:flew"
+  },
+  "2026-08-25": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:cancelled"
+  },
+  "2026-08-24": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:cancelled"
+  },
+  "2026-08-23": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:flew"
+  },
+  "2026-08-22": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus2:flew"
+  },
+  "2026-07-09": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-10": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-11": {
+   "s": "cancelled",
+   "src": "auto",
+   "est": 4,
+   "note": "s=1.50"
+  },
+  "2026-07-12": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-13": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-14": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-15": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-16": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-17": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-18": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-19": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-20": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-21": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-22": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-23": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-24": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-25": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-26": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-27": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-28": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-07-29": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.42"
+  },
+  "2026-07-30": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.60"
+  },
+  "2026-07-31": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.60"
+  },
+  "2026-08-01": {
+   "s": "cancelled",
+   "src": "auto",
+   "est": 4,
+   "note": "s=1.50"
+  },
+  "2026-08-02": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-03": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-04": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-05": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-06": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-07": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-08": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-09": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-10": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-11": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-12": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-13": {
+   "s": "cancelled",
+   "src": "auto",
+   "est": 4,
+   "note": "s=1.50"
+  },
+  "2026-08-14": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-15": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-16": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-17": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-18": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-19": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-20": {
+   "s": "flew",
+   "src": "auto",
+   "est": 4,
+   "note": "s=0.00"
+  },
+  "2026-08-21": {
+   "s": "cancelled",
+   "src": "auto",
+   "est": 4,
+   "note": "s=2.94"
+  }
+ },
+ "lastScrape": {
+  "at": "2026-09-05T08:54:21.063Z",
+  "sitesRead": 2,
+  "sitesTried": 3
+ },
+ "pending": [],
+ "updated": "2026-09-05T08:54:21.367Z",
+ "counts": {
+  "total": 59,
+  "measured": 15,
+  "flew": 49
+ }
+}
