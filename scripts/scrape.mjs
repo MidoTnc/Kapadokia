@@ -18,6 +18,15 @@ const LAT = 38.6431, LON = 34.8289, TZ = "Europe/Istanbul";
 const EST_VERSION = 4;   // 앱과 계산 일치화 (900/800hPa·저층운량 추가)
 const OUT = new URL("../data/log.json", import.meta.url);
 
+/* 최근 이 기간은 날씨 짐작으로 채우지 않는다 (앱의 NO_GUESS_DAYS 와 같은 값).
+   기상 신호가 전혀 없는데 취소되는 날이 실제로 있다(2026-08-28: 지상 2kt·시정 39.9km).
+   짐작으로 메우면 최신 구간이 틀린 채 굳고, 앱에서는 실측처럼 보인다. */
+const NO_GUESS_DAYS = 14;
+
+/* 하루치만 긁으면 그날 실패한 순간 그 날짜는 영영 비어버린다.
+   매 실행마다 최근 이 기간에서 아직 실측이 없는 날을 다시 시도한다. */
+const BACKREAD_DAYS = 14;
+
 const SITES = [
   { name: "balloonstatus", url: "https://balloonstatus.com/" },          // 홈이 "flew 05:30–09:30" 을 보여줘 오독이 적다
   { name: "balloonstatus2", url: "https://balloonstatus.com/cappadocia/today/" },
@@ -33,6 +42,10 @@ const HDRS = {
   "cache-control": "no-cache"
 };
 const pad = n => String(n).padStart(2, "0");
+const addDays = (iso, n) => {
+  const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
 
 /* 앱과 동일한 일출 계산 (NOAA) */
 function sunriseLocal(dateStr){
@@ -90,6 +103,92 @@ function verdict(html) {
   if (!neg && !pos) return null;
   if (neg === pos) return null;
   return neg > pos ? "cancelled" : "flew";
+}
+
+/* 날짜가 붙은 '지난 판정' 표를 읽는다.
+ *
+ * 하루치 헤드라인만 보는 방식은 그날 한 번 실패하면 복구가 안 된다.
+ * 여기서는 "28 Aug ... cancelled" 처럼 날짜와 결과가 가까이 붙은 것만 집어낸다.
+ *
+ * 예보 문구(likely / unlikely / marginal / risk / 62%)는 판정이 아니므로 반드시 걸러낸다.
+ * 이것을 실측으로 착각하면 모델 채점이 통째로 오염된다.
+ */
+const MON = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, oct:10, nov:11, dec:12 };
+const MONWORD = "january|february|march|april|may|june|july|august|september|october|november|december" +
+                "|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec";
+const FORECASTY = /likely|unlikely|marginal|probabilit|risk|chance|forecast|expect|\d\s*%/;
+const PAST_NEG = /cancell?ed|did not fly|no flights?|not flying|grounded|iptal|zones? closed/;
+const PAST_POS = /\bflew\b|flights? operated|operated normally|flights? took off/;
+
+function isoFrom(monName, day, today) {
+  const m = MON[String(monName).slice(0, 3).toLowerCase()];
+  if (!m || !day || day < 1 || day > 31) return null;
+  let y = +today.slice(0, 4);
+  // 연도 표기가 없다. 오늘보다 두 달 이상 미래로 나오면 작년 것이다.
+  if ((new Date(`${y}-${pad(m)}-${pad(day)}`) - new Date(today)) / 864e5 > 60) y -= 1;
+  return `${y}-${pad(m)}-${pad(day)}`;
+}
+
+function datedVerdicts(html, today) {
+  const t = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ")
+    .toLowerCase();
+
+  // 1) 날짜가 나오는 자리를 전부 찾는다. 뒤 문장은 아직 먹지 않는다
+  //    (먹어버리면 그 안에 들어 있는 다음 날짜를 통째로 놓친다 — 표 형식이 딱 그렇다)
+  const dre = new RegExp(`(?:(\\d{1,2})\\s+(${MONWORD})|(${MONWORD})\\s+(\\d{1,2}))\\b`, "g");
+  const hits = [];
+  let m;
+  while ((m = dre.exec(t))) {
+    const iso = m[1] ? isoFrom(m[2], +m[1], today) : isoFrom(m[3], +m[4], today);
+    if (iso) hits.push({ iso, start: m.index, end: dre.lastIndex });
+  }
+
+  // 2) 각 날짜 뒤 ~120자, 단 다음 날짜가 먼저 나오면 거기서 끊는다
+  const out = {};
+  for (let i = 0; i < hits.length; i++) {
+    const h = hits[i];
+    if (h.iso > today) continue;
+    const stop = Math.min(h.end + 120, i + 1 < hits.length ? hits[i + 1].start : t.length);
+    const tail = t.slice(h.end, stop);
+    if (FORECASTY.test(tail)) continue;                 // 예보 문구는 판정이 아니다
+    const neg = PAST_NEG.test(tail), pos = PAST_POS.test(tail);
+    if (neg === pos) continue;                          // 둘 다거나 둘 다 아니면 버린다
+    const v = neg ? "cancelled" : "flew";
+    if (h.iso in out && out[h.iso] !== v) { out[h.iso] = null; continue; }  // 모순 → 폐기
+    if (out[h.iso] !== null) out[h.iso] = v;
+  }
+  for (const k of Object.keys(out)) if (out[k] == null) delete out[k];
+  return out;
+}
+
+/* 한 날짜에 모인 표들을 놓고 무엇을 할지 정한다.
+   기존 기록을 언제 덮어도 되는지가 핵심이라 따로 떼어 테스트한다. */
+function decide(votes, prev) {
+  const flew = votes.filter(v => v.v === "flew").length;
+  const canc = votes.length - flew;
+  const list = votes.map(v => `${v.site}=${v.v}`).join(" / ");
+  // 찬반 동수 — 어느 쪽으로도 찍지 않는다. 틀린 정답을 넣으면 모델 채점이 오염된다.
+  if (flew === canc) return { action: "skip", why: `의견이 ${list} 로 갈려 기록하지 않음` };
+
+  const agree = flew === 0 || canc === 0;
+  const rec = { s: flew > canc ? "flew" : "cancelled", src: "scrape", agree,
+                note: votes.map(v => `${v.site}:${v.v}`).join(", ") };
+
+  // 사람이 넣은 기록은 무슨 일이 있어도 덮지 않는다
+  if (prev && (prev.src === "official" || prev.src === "manual"))
+    return { action: "skip", why: `직접 확인한 기록(${prev.s})이 있어 건드리지 않음` };
+
+  if (!prev || prev.src === "auto")
+    return { action: "write", rec, why: `${rec.s}${agree ? "" : " (일부 불일치)"}` };
+
+  // 지난번엔 의견이 갈렸는데 이번엔 만장일치로 다르게 나왔다면 고친다
+  if (prev.src === "scrape" && prev.agree === false && agree && prev.s !== rec.s)
+    return { action: "fix", rec, why: `정정 ${prev.s} → ${rec.s} (이번엔 만장일치)` };
+
+  return { action: "skip", why: `이미 ${prev.s} 로 기록됨` };
 }
 
 async function fetchText(url) {
@@ -212,44 +311,58 @@ const main = async () => {
   const log = store.log;
   const today = todayLocal();
 
-  // 1) 오늘 상태 스크래핑
-  const votes = [];
+  // 1) 사이트를 읽어 (a) 오늘 헤드라인 (b) 날짜가 붙은 지난 판정 을 모두 모은다
+  const byDate = {};                                   // { "2026-08-28": [{site, v}] }
+  const push = (date, site, v) => { (byDate[date] ||= []).push({ site, v }); };
+  let read = 0;
   for (const site of SITES) {
     try {
-      const v = verdict(await fetchText(site.url));
-      console.log(`${site.name}: ${v ?? "판독불가"}`);
-      if (v) votes.push({ site: site.name, v });
+      const html = await fetchText(site.url);
+      read++;
+      const head = verdict(html);
+      if (head) { push(today, site.name, head); }
+      const dated = datedVerdicts(html, today);
+      for (const [d2, v] of Object.entries(dated)) {
+        if (d2 === today && head) continue;            // 오늘은 헤드라인 판정을 우선
+        push(d2, site.name, v);
+      }
+      console.log(`${site.name}: 오늘=${head ?? "판독불가"} · 날짜별 ${Object.keys(dated).length}일`);
     } catch (e) {
       console.log(`${site.name}: 실패 (${e.message})`);
     }
   }
-  if (votes.length) {
-    const flew = votes.filter(v => v.v === "flew").length;
-    const canc = votes.length - flew;
-    const agree = flew === 0 || canc === 0;
-    const prev = log[today];
-    if (flew === canc) {
-      // 찬반 동수 — 어느 쪽으로도 찍지 않는다. 틀린 정답을 넣으면 모델 채점이 오염된다.
-      console.log(`${today}: 사이트 의견이 ${votes.map(v => `${v.site}=${v.v}`).join(" / ")} 로 갈려 기록하지 않음`);
-    } else if (!prev || prev.src === "auto") {
-      log[today] = {
-        s: flew > canc ? "flew" : "cancelled",
-        src: "scrape",
-        agree,
-        note: votes.map(v => `${v.site}:${v.v}`).join(", ")
-      };
-      console.log(`기록: ${today} → ${log[today].s}${agree ? "" : " (일부 불일치)"}`);
-    }
-  } else {
-    console.log("스크래핑으로 오늘 상태를 정하지 못함");
+  store.lastScrape = { at: new Date().toISOString(), sitesRead: read, sitesTried: SITES.length };
+
+  const oldest = addDays(today, -BACKREAD_DAYS);
+  let wrote = 0, fixed = 0;
+  for (const [date, votes] of Object.entries(byDate)) {
+    if (date > today || date < oldest) continue;
+    const d2 = decide(votes, log[date]);
+    console.log(`${date}: ${d2.why}`);
+    if (d2.action === "write") { log[date] = d2.rec; wrote++; }
+    else if (d2.action === "fix") { log[date] = d2.rec; fixed++; }
   }
+  if (!wrote && !fixed) console.log("새로 기록할 날이 없음");
+  else console.log(`스크래핑 ${wrote}일 기록${fixed ? ` · ${fixed}일 정정` : ""}`);
+
+  // 아직 비어 있는 최근 날짜를 남겨 앱이 사용자에게 물어볼 수 있게 한다
+  const pending = [];
+  for (let i = 0; i <= BACKREAD_DAYS; i++) {
+    const d2 = addDays(today, -i);
+    const r2 = log[d2];
+    if (!r2 || r2.src === "auto") pending.push(d2);
+  }
+  store.pending = pending;
+  if (pending.length) console.log(`아직 실측이 없는 최근 날짜 ${pending.length}일: ${pending.join(", ")}`);
 
   // 2) 비어 있는 날짜 + 옛 기준으로 찍어둔 auto 기록을 채우거나 갱신
   let filled = 0, redone = 0;
   try {
     const auto = await autoLabels(60, await loadS0());
+    const guard = addDays(today, -NO_GUESS_DAYS);
     for (const [date, rec] of Object.entries(auto)) {
       if (date > today) continue;
+      if (date > guard) continue;                  // 최근 구간은 짐작으로 채우지 않는다
       const cur = log[date];
       if (!cur) { log[date] = rec; filled++; continue; }
       if (cur.src !== "auto") continue;            // 실측·수동 기록은 손대지 않는다
@@ -271,4 +384,8 @@ const main = async () => {
     ` · 누적 ${store.counts.total}일 (실측 ${store.counts.measured} · 뜬 날 ${store.counts.flew})`);
 };
 
-main().catch(e => { console.error(e); process.exit(1); });
+export { verdict, datedVerdicts, decide, severityOf, featuresOf, sunriseLocal, addDays, NO_GUESS_DAYS, BACKREAD_DAYS };
+
+if (process.argv[1] && process.argv[1].endsWith("scrape.mjs")) {
+  main().catch(e => { console.error(e); process.exit(1); });
+}
