@@ -365,18 +365,24 @@
    "src": "auto",
    "est": 4,
    "note": "s=0.00"
+  },
+  "2026-09-06": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus:flew, balloonstatus2:flew, epicturkey:flew"
   }
  },
  "lastScrape": {
-  "at": "2026-09-05T12:39:23.577Z",
+  "at": "2026-09-06T07:26:10.561Z",
   "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-09-05T12:39:24.569Z",
+ "updated": "2026-09-06T07:26:11.439Z",
  "counts": {
-  "total": 61,
-  "measured": 15,
-  "flew": 51
+  "total": 62,
+  "measured": 16,
+  "flew": 52
  }
 }
