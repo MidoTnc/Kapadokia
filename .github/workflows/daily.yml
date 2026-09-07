@@ -3,13 +3,18 @@ name: 벌룬 운항 기록 수집
 on:
   schedule:
     # 판정은 새벽 3~5시(현지)에 나오고 운항창은 09:30 까지다.
-    # 03·05·07·09 UTC = 이스탄불 06·08·10·12시. 한 번 실패해도 다음 회차가 잡는다.
-    # (GitHub 예약 실행은 몇 분~수십 분 늦을 수 있어 여유를 두고 4회로 둔다)
-    - cron: "0 3,5,7,9 * * *"
+    # 03·05·07·09·13 UTC = 이스탄불 06·08·10·12·16시.
+    # 마지막 회차는 사이트가 하루치 판정을 늦게 올리는 경우를 잡기 위한 것이다.
+    # (GitHub 예약 실행은 몇 분~수십 분 늦을 수 있어 여유를 둔다)
+    - cron: "0 3,5,7,9,13 * * *"
   workflow_dispatch:
     inputs:
       climatology:
         description: "기후값도 다시 계산 (15년치 · 몇 분 걸림 · 평소엔 불필요)"
+        type: boolean
+        default: false
+      metar_backfill:
+        description: "공항 실측(METAR) 과거치를 4월부터 다시 받기 (첫 실행 땐 자동)"
         type: boolean
         default: false
 
@@ -30,7 +35,20 @@ jobs:
         with:
           node-version: "20"
 
-      - name: 오늘 운항 여부 수집
+      # 판독 로직이 깨진 채로 돌면 틀린 기록이 쌓인다. 먼저 확인하고 들어간다.
+      - name: 판독 로직 자체 점검
+        run: |
+          node test-scrape.mjs
+          node test-observe.mjs
+
+      # 민항청 원본 판정 + 공항 실측. 재발행 사이트보다 먼저 돌려 우선권을 준다.
+      - name: 민항청 판정 · 공항 실측 수집
+        run: node scripts/observe.mjs
+        env:
+          METAR_BACKFILL: ${{ github.event.inputs.metar_backfill }}
+        continue-on-error: true
+
+      - name: 운항 여부 수집 (최근 14일 중 빈 날 재시도 포함)
         run: node scripts/scrape.mjs
 
       - name: 다른 사이트 예보 수집
