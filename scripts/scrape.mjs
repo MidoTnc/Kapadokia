@@ -180,6 +180,9 @@ function decide(votes, prev) {
   // 사람이 넣은 기록은 무슨 일이 있어도 덮지 않는다
   if (prev && (prev.src === "official" || prev.src === "manual"))
     return { action: "skip", why: `직접 확인한 기록(${prev.s})이 있어 건드리지 않음` };
+  // 민항청 원본(shm)이 있으면 재발행 사이트 말은 듣지 않는다
+  if (prev && prev.src === "shm")
+    return { action: "skip", why: `민항청 원본 기록(${prev.s})이 있어 건드리지 않음` };
 
   if (!prev || prev.src === "auto")
     return { action: "write", rec, why: `${rec.s}${agree ? "" : " (일부 불일치)"}` };

@@ -184,6 +184,14 @@ table.links td:first-child{white-space:nowrap;font-weight:600}
 .nc.over{background:var(--clayT)}
 .nc.over .k,.nc.over .v{color:var(--ink)}
 .nowfoot{font-size:11.5px;color:var(--dim);margin-top:9px;line-height:1.5}
+.shmwrap{margin-top:16px;border-top:1px solid var(--line);padding-top:13px}
+.shmrow{display:flex;align-items:baseline;gap:10px;padding:7px 0;font-size:13.5px;flex-wrap:wrap}
+.shmrow .k{color:var(--dim);flex:0 0 auto;min-width:76px}
+.shmrow .v{flex:1}
+.shmrow .d{font-size:11px;color:var(--dim);flex:0 0 auto}
+.spark{width:100%;height:46px;display:block;margin-top:10px;border-radius:6px;background:var(--tint)}
+.sparklgd{display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--dim);margin-top:5px}
+.sparklgd i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 
 /* 운항 기록 — 한 주가 한 줄. 날짜가 칸 안에 그대로 보인다 */
 .lhead,.lrow{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
@@ -259,6 +267,9 @@ details>summary .hint{font-weight:400;color:var(--dim);font-size:11.5px;margin-l
   .nv{font-size:17px}
   .lc b{font-size:13px}
   .lc i{font-size:9px}
+  .shmrow{gap:6px 10px}
+  .shmrow .d{width:100%;padding-left:86px;margin-top:-3px}
+  .nowhead{flex-wrap:wrap}
   .tday{padding:9px 4px;border-radius:11px}
   .tday .pv{font-size:18px}
   .months{grid-template-columns:1fr;gap:16px}
@@ -521,6 +532,10 @@ const SEED = (() => {
   put("07", [1,2,3,4,14,15,16,17,18,19,20], "flew", "auto");
   return o;
 })();
+/* 실측으로 인정하는 출처. shm = 민항청 슬롯센터 원본(가장 믿을 만함),
+   official = 확인된 시드, manual = 사용자가 직접, scrape = 재발행 사이트. auto(날씨 짐작)는 아니다. */
+const MEASURED_SRC = ["shm","official","manual","scrape"];
+const isMeasured = r => !!r && MEASURED_SRC.includes(r.src);
 const cfg = Object.assign({}, DEF, load(LSK.cfg, {}));
 const flightLog = load(LSK.log, {});   // { "2026-08-27": {s:"flew"|"cancelled", src:"official|scrape|auto|manual", note:""} }
 
@@ -1294,7 +1309,7 @@ function renderBig(){
   const DOW = ["일","월","화","수","목","금","토"];
 
   let sub = line;
-  if(rec && ["official","scrape","manual"].includes(rec.src)){
+  if(isMeasured(rec)){
     sub = rec.s==="flew" ? "오늘 아침엔 <b>떴어요</b>." : "오늘 아침엔 <b>못 떴어요</b>.";
   }
 
@@ -1307,10 +1322,103 @@ function renderBig(){
       <span class="nv num ${cls(pp)}">${pp==null?"—":Math.round(pp*100)+"%"}</span></div>`;
   }).join("");
 
-  // 지금 이 시각 괴레메. 규정 한도(지상풍 10kt)를 넘긴 칸은 붉게 칠한다.
+  // ── 민항청 공식 판정 (원본) ──
+  let shmbar = "";
+  const S = STATE.shm;
+  if(S && S.history && S.history.length){
+    const byDate = {};
+    for(const h of S.history){ if(h.date && h.verdict) byDate[h.date] = h; }   // 마지막 갱신이 남는다
+    const line = (k, label) => {
+      const h = byDate[k]; if(!h) return "";
+      const prelim = h.updated && h.updated.slice(0,10) < k;
+      const upd = h.updated ? h.updated.slice(5,16).replace("T"," ").replace("-","/") : "";
+      const zones = h.mainYes === 3 ? "A·B·C 전 구역" : h.mainYes === 0 ? "전 구역" : `3구역 중 ${h.mainYes}곳`;
+      const word = h.verdict === "flew"
+        ? `<b class="g">비행 가능</b> (${zones})` : `<b class="b">비행 불가</b> (${zones})`;
+      return `<div class="shmrow"><span class="k">${label} ${D.label(k)}</span><span class="v">${word}</span>
+        <span class="d">${prelim ? "예비 · " : ""}${upd} 발표</span></div>`;
+    };
+    const rows = line(TODAY, "오늘") + line(D.add(TODAY,1), "내일");
+    if(rows) shmbar = `
+      <div class="shmwrap">
+        <div class="nowhead"><b>민항청 공식 판정</b><span>SHM Kapadokya 슬롯센터 · 이 사이트들이 전부 베끼는 원본</span></div>
+        ${rows}
+        ${byDate[D.add(TODAY,1)] && byDate[D.add(TODAY,1)].updated && byDate[D.add(TODAY,1)].updated.slice(0,10) < D.add(TODAY,1)
+          ? `<div class="nowfoot">내일 판정은 전날 오전에 미리 올라오는 예비 판정이에요. 새벽에 다시 평가돼 바뀔 수 있습니다.</div>` : ""}
+      </div>`;
+  }
+
+  // ── 지금 실측 (공항 METAR) ──
+  const M = STATE.metar;
+  let obsbar = "";
+  if(M && M.list.length){
+    const last = M.list[M.list.length-1];
+    const hm = (() => { const d = new Date(last.t); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); })();
+    const ageMin = Math.round((Date.now() - new Date(last.t)) / 60000);
+    const n1 = v => v==null ? "—" : String(Math.round(v));
+    const cell = (k,v,u,over) =>
+      `<div class="nc ${over?"over":""}"><div class="k">${k}</div><div class="v num">${v}<small>${u}</small></div></div>`;
+    const visTxt = last.vsby==null ? "—" : last.vsby >= 9999 ? "10+" : (last.vsby/1000).toFixed(1);
+
+    // 최근 24시간 스파크라인 (풍속·돌풍)
+    const cut = Date.now() - 24*3600e3;
+    const pts = M.list.filter(o => new Date(o.t) > cut && o.sknt != null);
+    let spark = "";
+    if(pts.length > 3){
+      const W = 300, H = 46, top = Math.max(15, ...pts.map(o => Math.max(o.sknt, o.gust||0)));
+      const x = o => ((new Date(o.t) - cut) / (24*3600e3)) * W;
+      const y = v => H - 4 - (v/top)*(H-10);
+      const path = pts.map((o,i)=>`${i?"L":"M"}${x(o).toFixed(1)},${y(o.sknt).toFixed(1)}`).join(" ");
+      const gusts = pts.filter(o=>o.gust).map(o=>`<circle cx="${x(o).toFixed(1)}" cy="${y(o.gust).toFixed(1)}" r="2.2" fill="var(--clay)"/>`).join("");
+      // 오늘 이륙 창 음영
+      const sr = STATE.F && STATE.F.sun && STATE.F.sun[TODAY];
+      let win = "";
+      if(sr){
+        const srUTC = new Date(sr + ":00+03:00");
+        const a = new Date(srUTC.getTime() - cfg.winPre*60000), b = new Date(srUTC.getTime() + cfg.winPost*60000);
+        const xa = Math.max(0, ((a - cut)/(24*3600e3))*W), xb = Math.min(W, ((b - cut)/(24*3600e3))*W);
+        if(xb > xa) win = `<rect x="${xa.toFixed(1)}" y="0" width="${(xb-xa).toFixed(1)}" height="${H}" fill="var(--amber)" opacity=".13"/>`;
+      }
+      const lim = `<line x1="0" x2="${W}" y1="${y(10).toFixed(1)}" y2="${y(10).toFixed(1)}" stroke="var(--clay)" stroke-dasharray="3 3" opacity=".6"/>`;
+      spark = `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${win}${lim}
+        <path d="${path}" fill="none" stroke="var(--ink2)" stroke-width="1.6"/>${gusts}</svg>
+        <div class="sparklgd"><span>최근 24시간 지상풍</span><span><i style="background:var(--clay)"></i>돌풍</span>
+          <span><i style="background:var(--amber);opacity:.4"></i>오늘 이륙 창</span><span>점선 = 규정 10kt</span></div>`;
+    }
+
+    // 오늘 이륙 창에 실제로 무엇이 관측됐나
+    const ow = obsWindow(TODAY);
+    let winTxt = "";
+    if(ow){
+      winTxt = `오늘 이륙 창 실측: 최대 지상풍 <b>${n1(ow.wmax)}kt</b>` +
+        (ow.gmax ? ` · 돌풍 <b>${n1(ow.gmax)}kt</b>` : " · 돌풍 없음") +
+        (ow.vmin!=null && ow.vmin < 9999 ? ` · 시정 ${(ow.vmin/1000).toFixed(1)}km` : "") +
+        (ow.over ? ` — <b class="b">규정을 넘겼어요</b>` : ` — <b class="g">규정 이내</b>`) + ` (관측 ${ow.n}회)`;
+    }
+    const nw = STATE.now;
+    const modelTxt = nw && nw.w10 != null && last.sknt != null
+      ? `모델은 지금 괴레메를 ${Math.round(nw.w10)}kt 로 추정 — 공항 실측과 ${Math.abs(Math.round(nw.w10 - last.sknt))}kt 차이.` : "";
+
+    obsbar = `
+      <div class="nowwrap">
+        <div class="nowhead"><i class="dotlive"></i><b>지금 실측 · 네브셰히르 공항</b>
+          <span>${hm} 관측 · ${ageMin < 60 ? ageMin + "분 전" : Math.round(ageMin/60) + "시간 전"} · ${M.liveOk ? "실시간" : "서버 수집분"}</span></div>
+        <div class="nowrow">
+          ${cell("지상풍", (dirName(last.drct)+" ") + n1(last.sknt), "kt", last.sknt != null && last.sknt > 10)}
+          ${cell("돌풍", n1(last.gust), "kt", last.gust != null && last.gust > 15)}
+          ${cell("시정", visTxt, "km", last.vsby != null && last.vsby < 2000)}
+          ${cell("기온", n1(last.tmpc), "°")}
+        </div>
+        ${spark}
+        <div class="nowfoot">${winTxt ? winTxt + "<br>" : ""}${modelTxt}
+          괴레메에서 30km, 표고 944m 공항의 실제 관측값이에요. 계곡 안 바람과는 다를 수 있지만, 여기 나오는 값 중 유일하게 <b>잰</b> 값입니다.</div>
+      </div>`;
+  }
+
+  // 지금 이 시각 괴레메 (모델 추정). 실측이 있으면 그쪽을 앞세우고 이건 생략한다.
   const nw = STATE.now;
   let nowbar = "";
-  if(nw){
+  if(nw && !obsbar){
     const hm = nw.time ? nw.time.slice(11,16) : "";
     const n1 = (v,d) => v==null ? "—" : (Math.round(v*10)/10).toFixed(d==null?0:d);
     const cell = (k,v,u,over) =>
@@ -1343,7 +1451,7 @@ function renderBig(){
       <div class="sp"><div class="k">예년 이맘때</div><div class="v num">${pc==null?"—":Math.round(pc*100)+"%"}</div></div>
       <div class="sp ${pf==null?"off":""}"><div class="k">예보</div><div class="v num">${pf==null?"—":Math.round(pf*100)+"%"}</div></div>
       <div class="sp"><div class="k">둘을 섞은 값</div><div class="v num">${p==null?"—":Math.round(p*100)+"%"}</div></div>
-    </div>${nowbar}`;
+    </div>${shmbar}${obsbar}${nowbar}`;
 }
 
 /* ── 16일 차트: 예보(면+선) vs 예년(점선) ── */
@@ -1591,8 +1699,6 @@ function wireCalendar(){
 /* 자동 수집이 놓친 최근 날짜를 사용자가 한 번씩 눌러 확정하는 칸.
    8/28~8/30 처럼 스크래퍼가 못 읽은 날이 생기면, 날씨로 짐작해 메우는 대신
    여기에 띄워 물어본다. 짐작으로 채운 날은 틀려도 티가 안 나기 때문이다. */
-const MEASURED_SRC = ["official","scrape","manual"];
-const isMeasured = r => !!r && MEASURED_SRC.includes(r.src);
 
 /* 이스탄불 현재 시각(시). 운항 판정은 대개 05~09시에 끝난다. */
 function istHour(){
@@ -1735,9 +1841,9 @@ function fillHints(){
 }
 function renderStat(){
   const ks = Object.keys(flightLog);
-  const off = ks.filter(k=>["official","scrape","manual"].includes(flightLog[k].src));
+  const off = ks.filter(k=>isMeasured(flightLog[k]));
   const flew = ks.filter(k=>flightLog[k].s==="flew").length;
-  const conf = off.length, cf = ks.filter(k=>["official","scrape","manual"].includes(flightLog[k].src) && flightLog[k].s==="flew").length;
+  const conf = off.length, cf = ks.filter(k=>isMeasured(flightLog[k]) && flightLog[k].s==="flew").length;
   const need = needCheckDays().length;
   $("#logStat").textContent = (conf
     ? `확인된 ${conf}일 중 ${cf}일 떴어요`
@@ -1871,7 +1977,7 @@ function fitFromLabels(s0){
   if(!F || !F.featByDate) return { use:false, n:0, reason:"기상 특징 없음" };
   const rows = [];
   for(const [date, rec] of Object.entries(flightLog)){
-    if(!["official","scrape","manual"].includes(rec.src)) continue;   // 자동추정은 정답이 아니다
+    if(!isMeasured(rec)) continue;   // 자동추정은 정답이 아니다
     const f = F.featByDate[date]; if(!f) continue;
     const x = featVec(f, date); if(!x) continue;
     rows.push({ x, y: rec.s==="flew" ? 1 : 0, date, f });
@@ -1963,6 +2069,106 @@ function renderMonthly(){
 /* ── 다른 사이트 예보와 나란히 비교 ──
    브라우저가 직접 못 읽으므로(CORS) GitHub Actions 가 매일 모아 data/forecasts.json 에 넣어둔다.
    파일이 없으면(로컬 파일로 열었을 때) 이 섹션은 조용히 비활성. */
+/* ────────────────────────────────────────────────────────────
+   실측 — 민항청 공식 판정(SHM) + 네브셰히르 공항 METAR
+   ────────────────────────────────────────────────────────────
+   지금까지 화면의 모든 숫자는 컴퓨터 모델의 계산값이었다. 여기서부터가 실제로 잰 값이다.
+   공항은 괴레메에서 약 30km, 표고 944m(괴레메 ~1,050m). 30분마다 관측한다.          */
+const METAR_LIVE = "https://aviationweather.gov/api/data/metar?ids=LTAZ&format=json&hours=24";
+
+function parseRawOb(raw){
+  const o = {};
+  const w = raw.match(/\b(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT\b/);
+  if(w){ o.drct = w[1]==="VRB" ? null : +w[1]; o.sknt = +w[2]; o.gust = w[3] ? +w[3] : null; }
+  if(/\bCAVOK\b/.test(raw)) o.vsby = 10000;
+  else { const v = raw.match(/\s(\d{4})(?:\s|$)/); if(v) o.vsby = +v[1]; }
+  const td = raw.match(/\s(M?\d{2})\/(M?\d{2})\s/);
+  if(td){ const f = x => (x[0]==="M"?-1:1)*+x.replace("M",""); o.tmpc = f(td[1]); o.dwpc = f(td[2]); }
+  const c = raw.match(/\b(FEW|SCT|BKN|OVC)(\d{3})\b/);
+  if(c){ o.sky = c[1]; o.base = +c[2]*100; }
+  return o;
+}
+
+async function loadShm(){
+  try{ const r = await fetch("data/shm.json", {cache:"no-store"}); if(!r.ok) throw 0; return await r.json(); }
+  catch(e){ return null; }
+}
+
+/* 실시간(브라우저에서 직접) → 안 되면 서버가 모아둔 파일. 둘 다 합쳐 시각순으로. */
+async function loadMetar(){
+  const rows = {};           // isoUTC → {sknt,gust,drct,vsby,tmpc,dwpc,sky,base}
+  let liveOk = false, fileMeta = null;
+  try{
+    const r = await fetch(METAR_LIVE, {signal: AbortSignal.timeout(12000)});
+    if(r.ok){
+      const j = await r.json();
+      for(const m of j){
+        const iso = m.reportTime ? m.reportTime.replace(" ","T").slice(0,16)+"Z" : null;
+        if(!iso) continue;
+        rows[iso] = Object.assign({ sknt:m.wspd, gust:m.wgst, tmpc:m.temp, dwpc:m.dewp }, parseRawOb(m.rawOb||""));
+      }
+      liveOk = Object.keys(rows).length > 0;
+    }
+  }catch(e){}
+  try{
+    const r = await fetch("data/metar.json", {cache:"no-store"});
+    if(r.ok){
+      const j = await r.json();
+      fileMeta = { count:j.count, first:j.first, last:j.last, updated:j.updated };
+      for(const [iso, v] of Object.entries(j.rows||{})){
+        if(rows[iso]) continue;
+        rows[iso] = { sknt:v[0], gust:v[1], drct:v[2], vsby:v[3], tmpc:v[4], dwpc:v[5], sky:v[6], base:v[7] };
+      }
+    }
+  }catch(e){}
+  const list = Object.keys(rows).sort().map(k => Object.assign({ t:k }, rows[k]));
+  return { list, liveOk, fileMeta };
+}
+
+/* 어떤 날의 이륙 창(일출 -45 ~ +120분, 현지) 안 관측을 요약한다 */
+function obsWindow(date){
+  const M = STATE.metar; if(!M || !M.list.length) return null;
+  const sr = STATE.F && STATE.F.sun && STATE.F.sun[date]; if(!sr) return null;
+  const srMin = +sr.slice(11,13)*60 + +sr.slice(14,16);            // 현지 분
+  const lo = srMin - cfg.winPre, hi = srMin + cfg.winPost;
+  const inWin = [];
+  for(const o of M.list){
+    if(o.t.slice(0,10) !== date && o.t.slice(0,10) !== D.add(date,-1)) continue;
+    // UTC → 현지(+3): 분 단위로 환산해 같은 날짜 창과 비교
+    const utcMin = +o.t.slice(11,13)*60 + +o.t.slice(14,16);
+    let locMin = utcMin + 180, locDate = o.t.slice(0,10);
+    if(locMin >= 1440){ locMin -= 1440; locDate = D.add(locDate,1); }
+    if(locDate !== date) continue;
+    if(locMin < lo || locMin > hi) continue;
+    inWin.push(o);
+  }
+  if(!inWin.length) return null;
+  const mx = k => Math.max(...inWin.map(o => o[k]==null ? -1 : o[k]));
+  const mn = k => Math.min(...inWin.map(o => o[k]==null ? 1e9 : o[k]));
+  const wmax = mx("sknt"), gmax = mx("gust"), vmin = mn("vsby");
+  return { n:inWin.length, wmax: wmax<0?null:wmax, gmax: gmax<0?null:gmax, vmin: vmin>1e8?null:vmin,
+           over: wmax > 10 || (gmax>0 && gmax > 15) || (vmin>0 && vmin < 2000) };
+}
+
+/* 모델이 실측과 얼마나 다른가 — 라벨이 있는 날의 이륙 창에서 최대 지상풍을 비교 */
+function obsBias(){
+  const F = STATE.F; if(!F || !F.featByDate || !STATE.metar) return null;
+  const diffs = [];
+  for(const [date, rec] of Object.entries(flightLog)){
+    if(!isMeasured(rec)) continue;
+    const f = F.featByDate[date]; if(!f || f.w10==null) continue;
+    const o = obsWindow(date); if(!o || o.wmax==null) continue;
+    diffs.push({ date, model:f.w10, obs:o.wmax, d:f.w10 - o.wmax, canc: rec.s!=="flew" });
+  }
+  if(diffs.length < 5) return { n:diffs.length };
+  const mean = diffs.reduce((a,x)=>a+x.d,0)/diffs.length;
+  const mae = diffs.reduce((a,x)=>a+Math.abs(x.d),0)/diffs.length;
+  // 실측만으로 규정(10kt)을 넘긴 날이 실제로 취소됐는가
+  const obsOver = diffs.filter(x=>x.obs>10);
+  const obsOverCanc = obsOver.filter(x=>x.canc).length;
+  return { n:diffs.length, mean, mae, obsOver:obsOver.length, obsOverCanc };
+}
+
 async function loadPeers(){
   try{
     const j = await getJSON("data/forecasts.json", 20000);
@@ -2039,6 +2245,17 @@ function renderFit(){
         표본이 ${f.n}일뿐이라 순서는 앞으로 바뀔 수 있습니다.</div>`;
     }
   }
+  {
+    const b = obsBias();
+    if(b && b.n >= 5){
+      const sign = b.mean >= 0 ? "+" : "−";
+      html += `<div class="note"><b>실측 대조.</b> 공항 실측이 있는 ${b.n}일의 이륙 창 최대 지상풍을 모델과 비교하면
+        모델이 평균 <b>${sign}${Math.abs(b.mean).toFixed(1)}kt</b> ${b.mean >= 0 ? "높게" : "낮게"} 봤고, 오차 크기는 평균 ${b.mae.toFixed(1)}kt 입니다.
+        실측만으로 규정(10kt)을 넘긴 날은 ${b.obsOver}일이었고 그중 ${b.obsOverCanc}일이 실제로 취소됐어요.</div>`;
+    } else if(b){
+      html += `<div class="note">공항 실측이 라벨과 겹치는 날이 ${b.n}일뿐이라 실측 대조는 아직 못 합니다. (Actions 가 4월부터 채우면 생깁니다)</div>`;
+    }
+  }
   if(f.missed && f.missed.length){
     const rowsH = f.missed.slice(0,8).map(m=>{
       const g = m.f;
@@ -2079,8 +2296,10 @@ async function mergeServerLog(){
     for(const [k,v] of Object.entries(inc)){
       if(v.src === "auto" && k > guard) continue;   // 최근 구간의 짐작은 받지 않는다
       const cur = flightLog[k];
-      // 서버 실측이 로컬 자동추정을 이긴다. 사용자의 수동 입력은 건드리지 않는다.
-      if(!cur || (cur.src === "auto" && v.src !== "auto")){ flightLog[k] = v; n++; }
+      // 서버 실측이 로컬 자동추정을 이긴다. 민항청 원본(shm)은 재발행(scrape)도 이긴다.
+      // 사용자의 수동 입력(manual)과 확인된 시드(official)는 건드리지 않는다.
+      const beats = !cur || (cur.src === "auto" && v.src !== "auto") || (cur.src === "scrape" && v.src === "shm");
+      if(beats){ flightLog[k] = v; n++; }
     }
     if(n) save(LSK.log, flightLog);
     STATE.srvAt = j.updated || null;
@@ -2127,6 +2346,15 @@ async function boot(force){
 
   // 지금 이 순간의 관측은 항상 새로 받는다 (캐시 없음)
   STATE.now = await buildNow();
+
+  // 실측: 민항청 판정 파일 + 공항 METAR (실시간 시도 → 서버 파일)
+  [STATE.shm, STATE.metar] = await Promise.all([loadShm(), loadMetar()]);
+  diag("민항청 공식 판정(SHM)", !!(STATE.shm && STATE.shm.latest),
+    STATE.shm && STATE.shm.latest ? `${STATE.shm.latest.date} → ${STATE.shm.latest.verdict==="flew"?"가능":"불가"} · 발표 ${(STATE.shm.latest.updated||"").slice(0,16)}` : "아직 수집 전 (Actions 첫 실행 뒤 생김)");
+  diag("공항 실측(METAR)", !!(STATE.metar && STATE.metar.list.length),
+    STATE.metar && STATE.metar.list.length
+      ? `${STATE.metar.list.length}회 · ${STATE.metar.liveOk ? "실시간 OK" : "실시간 차단 → 서버 파일"}${STATE.metar.fileMeta ? ` · 누적 ${STATE.metar.fileMeta.count}회 (${STATE.metar.fileMeta.first||""}~)` : ""}`
+      : "없음");
   diag("실시간 관측", !!STATE.now, STATE.now
     ? `${(STATE.now.time||"").slice(11,16)} 기준 · 지상풍 ${STATE.now.w10}kt · 돌풍 ${STATE.now.gu}kt`
     : "못 받았어요 — 예보만으로 계산합니다");
