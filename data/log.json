@@ -380,12 +380,12 @@
   }
  },
  "lastScrape": {
-  "at": "2026-09-07T07:42:15.465Z",
-  "sitesRead": 2,
+  "at": "2026-09-07T14:07:31.123Z",
+  "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-09-07T07:42:16.041Z",
+ "updated": "2026-09-07T14:07:32.130Z",
  "counts": {
   "total": 63,
   "measured": 17,
