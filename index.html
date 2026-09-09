@@ -166,8 +166,12 @@ table.links td:first-child{white-space:nowrap;font-weight:600}
 .nxrow{display:flex;gap:10px;margin-top:16px}
 .nx{flex:1;background:var(--tint);border-radius:12px;padding:10px 13px;display:flex;
     align-items:baseline;justify-content:space-between;gap:8px}
-.nl{font-size:12px;color:var(--dim)}
+.nl{font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:3px}
 .nv{font-size:20px}
+.shmtag{font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:6px;width:max-content}
+.shmtag.no{background:var(--clayT);color:var(--ink)}
+.shmtag.ok{background:var(--amberT);color:var(--ink)}
+.nx.clash{box-shadow:inset 0 0 0 1.5px var(--clay)}   /* 모델과 민항청이 갈린 날 */
 
 /* 지금 괴레메 — 매번 새로 받아오는 실시간 관측 */
 .nowwrap{margin-top:16px;border-top:1px solid var(--line);padding-top:13px}
@@ -618,7 +622,12 @@ function features(hourly, idxByDate, sunriseByDate, date, suffix){
   const mx = (arr,i,cur) => (arr && arr[i]!=null) ? Math.max(cur, arr[i]) : cur;
   let w10=-1, gu=-1, wal=-1, pr=0, vi=null, ccS=0, cclS=0, n=0;
   let dewDep=null, inv=null, d10s=null, d850s=null, w10s=0;
+  /* 이륙 창이 끝난 뒤 낮 시간(창 종료 ~ +8시간)의 최대 돌풍.
+     민항청 판정의 "해당 시간"이 오후 16시(UTC)까지 이어진다. 새벽이 잔잔해도 낮에 터지는 날을
+     통째로 불가로 내는지는 아직 모른다 — 그래서 규칙에는 안 넣고 학습에만 맡겨 데이터가 답하게 한다. */
+  let guPM = -1;
   for(const r of rows){
+    if(r.min > hi && r.min <= hi + 480) guPM = mx(A.gu, r.i, guPM);
     if(r.min < lo-60 || r.min > hi) continue;   // 1시간 해상도 여유
     const i = r.i; n++;
     w10 = mx(A.w10,i,w10); gu = mx(A.gu,i,gu);
@@ -645,7 +654,8 @@ function features(hourly, idxByDate, sunriseByDate, date, suffix){
   return {
     w10, gu, wal: wal<0?null:wal, llj,
     shearDir: (d10s!=null && d850s!=null) ? ANG(d10s, d850s) : null,
-    dewDep, inv, pr, vi, cc: n?ccS/n:null, ccl: (A.ccl && n)?cclS/n:null, w10s
+    dewDep, inv, pr, vi, cc: n?ccS/n:null, ccl: (A.ccl && n)?cclS/n:null, w10s,
+    guPM: guPM < 0 ? null : guPM
   };
 }
 
@@ -671,7 +681,7 @@ function severity(f){
 }
 
 /* ── 실측 라벨로 계수를 다시 학습 (로지스틱 회귀 + L2) ── */
-const FEATN = ["지상풍","돌풍","상층풍","저층제트","이슬점차","역전층","강수","저시정","평년대비","방향시어"];
+const FEATN = ["지상풍","돌풍","상층풍","저층제트","이슬점차","역전층","강수","저시정","평년대비","방향시어","오후돌풍"];
 
 /* 경험 역산 변수: 이 날짜의 위험도가 "같은 절기의 15년 분포"에서 상위 몇 %인가.
    운항위원회는 절대 풍속만이 아니라 그 계절의 감각으로도 판단한다 —
@@ -714,7 +724,9 @@ function featVec(f, date){
     /* 지상과 850hPa 의 풍향 차이. 기구는 옆으로 못 가고 고도를 바꿔 층을 갈아타는 식으로만
        방향을 고른다. 층끼리 방향이 같으면 착륙지를 못 고르고, 너무 어긋나면 위험하다.
        그래서 클수록 나쁘다고 볼 수 없는 값이라 학습에 맡긴다. */
-    f.shearDir != null ? f.shearDir : 45
+    f.shearDir != null ? f.shearDir : 45,
+    // 낮 돌풍. 창 안 돌풍보다 크면 "새벽은 괜찮은데 낮에 터지는 날". 없으면 창 값으로 대신한다.
+    f.guPM != null ? f.guPM : f.gu
   ];
 }
 
@@ -1314,11 +1326,19 @@ function renderBig(){
   }
 
   // 내일·모레는 작게 곁들인다
+  // 민항청이 그날 판정을 이미 냈으면 모델 숫자 옆에 같이 보여준다. 둘이 갈릴 때 숨기면 안 된다.
+  const shmOf = k => {
+    const S = STATE.shm; if(!S || !S.history) return null;
+    let h = null; for(const x of S.history) if(x.date === k && x.verdict) h = x;
+    return h;
+  };
   const nxt = [1,2].map(i=>{
     const k = D.add(TODAY,i);
     const cc = F ? combine(k, F, clim) : null;
     const pp = capP(cc && cc.p);
-    return `<div class="nx"><span class="nl">${i===1?"내일":"모레"} ${D.label(k)}</span>
+    const h = shmOf(k);
+    const badge = h ? `<span class="shmtag ${h.verdict==="flew"?"ok":"no"}">민항청 ${h.verdict==="flew"?"가능":"불가"}${h.updated && h.updated.slice(0,10) < k ? "(예비)" : ""}</span>` : "";
+    return `<div class="nx ${h && h.verdict!=="flew" && pp!=null && pp>=.5 ? "clash" : ""}"><span class="nl">${i===1?"내일":"모레"} ${D.label(k)}${badge}</span>
       <span class="nv num ${cls(pp)}">${pp==null?"—":Math.round(pp*100)+"%"}</span></div>`;
   }).join("");
 
@@ -1345,16 +1365,26 @@ function renderBig(){
         ${rows}
         ${byDate[D.add(TODAY,1)] && byDate[D.add(TODAY,1)].updated && byDate[D.add(TODAY,1)].updated.slice(0,10) < D.add(TODAY,1)
           ? `<div class="nowfoot">내일 판정은 전날 오전에 미리 올라오는 예비 판정이에요. 새벽에 다시 평가돼 바뀔 수 있습니다.</div>` : ""}
+        ${mgmFcLine()}
       </div>`;
   }
 
-  // ── 지금 실측 (공항 METAR) ──
+  // ── 지금 실측 ──
+  //   1순위 괴레메 마을 관측소(터키 기상청, 10분 간격, 돌풍 없음)
+  //   2순위 네브셰히르 공항 METAR(30분 간격, 돌풍·시정 있음)
+  //   둘 다 있으면 풍속·풍향·기온은 괴레메, 돌풍·시정은 공항에서 가져온다.
   const M = STATE.metar;
+  const G = STATE.mgm && STATE.mgm.latest && STATE.mgm.latest["18902"];
+  const gFresh = G && (Date.now() - new Date(G.t)) < 3*3600e3;
   let obsbar = "";
-  if(M && M.list.length){
-    const last = M.list[M.list.length-1];
-    const hm = (() => { const d = new Date(last.t); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); })();
-    const ageMin = Math.round((Date.now() - new Date(last.t)) / 60000);
+  if((M && M.list.length) || gFresh){
+    const last = (M && M.list.length) ? M.list[M.list.length-1] : { t: G.t };
+    const primT = gFresh ? G.t : last.t;
+    const hm = (() => { const d = new Date(primT); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); })();
+    const ageMin = Math.round((Date.now() - new Date(primT)) / 60000);
+    const wKt = gFresh ? G.kmh * KMH2KT : last.sknt;
+    const wDir = gFresh ? G.dir : last.drct;
+    const tC = gFresh ? G.tmpc : last.tmpc;
     const n1 = v => v==null ? "—" : String(Math.round(v));
     const cell = (k,v,u,over) =>
       `<div class="nc ${over?"over":""}"><div class="k">${k}</div><div class="v num">${v}<small>${u}</small></div></div>`;
@@ -1396,23 +1426,39 @@ function renderBig(){
         (ow.over ? ` — <b class="b">규정을 넘겼어요</b>` : ` — <b class="g">규정 이내</b>`) + ` (관측 ${ow.n}회)`;
     }
     const nw = STATE.now;
-    const modelTxt = nw && nw.w10 != null && last.sknt != null
-      ? `모델은 지금 괴레메를 ${Math.round(nw.w10)}kt 로 추정 — 공항 실측과 ${Math.abs(Math.round(nw.w10 - last.sknt))}kt 차이.` : "";
+    const modelTxt = nw && nw.w10 != null && wKt != null
+      ? `모델은 지금 괴레메를 ${Math.round(nw.w10)}kt 로 추정 — ${gFresh ? "마을 관측소" : "공항 실측"}와 ${Math.abs(Math.round(nw.w10 - wKt))}kt 차이.` : "";
+    const otherTxt = gFresh && M && M.list.length && last.sknt != null
+      ? ` 공항(30km)은 ${n1(last.sknt)}kt.` : "";
 
     obsbar = `
       <div class="nowwrap">
-        <div class="nowhead"><i class="dotlive"></i><b>지금 실측 · 네브셰히르 공항</b>
-          <span>${hm} 관측 · ${ageMin < 60 ? ageMin + "분 전" : Math.round(ageMin/60) + "시간 전"} · ${M.liveOk ? "실시간" : "서버 수집분"}</span></div>
+        <div class="nowhead"><i class="dotlive"></i><b>지금 실측 · ${gFresh ? "괴레메 마을" : "네브셰히르 공항"}</b>
+          <span>${hm} 관측 · ${ageMin < 60 ? ageMin + "분 전" : Math.round(ageMin/60) + "시간 전"} · ${gFresh ? "터키 기상청 관측소" : (M && M.liveOk ? "실시간" : "서버 수집분")}</span></div>
         <div class="nowrow">
-          ${cell("지상풍", (dirName(last.drct)+" ") + n1(last.sknt), "kt", last.sknt != null && last.sknt > 10)}
-          ${cell("돌풍", n1(last.gust), "kt", last.gust != null && last.gust > 15)}
-          ${cell("시정", visTxt, "km", last.vsby != null && last.vsby < 2000)}
-          ${cell("기온", n1(last.tmpc), "°")}
+          ${cell("지상풍", (dirName(wDir)+" ") + n1(wKt), "kt", wKt != null && wKt > 10)}
+          ${cell(gFresh ? "돌풍(공항)" : "돌풍", n1(last.gust), "kt", last.gust != null && last.gust > 15)}
+          ${cell(gFresh ? "시정(공항)" : "시정", visTxt, "km", last.vsby != null && last.vsby < 2000)}
+          ${cell("기온", n1(tC), "°")}
         </div>
         ${spark}
-        <div class="nowfoot">${winTxt ? winTxt + "<br>" : ""}${modelTxt}
-          괴레메에서 30km, 표고 944m 공항의 실제 관측값이에요. 계곡 안 바람과는 다를 수 있지만, 여기 나오는 값 중 유일하게 <b>잰</b> 값입니다.</div>
+        <div class="nowfoot">${winTxt ? winTxt + "<br>" : ""}${modelTxt}${otherTxt}
+          ${gFresh
+            ? `괴레메 마을 안(표고 1,083m) 터키 기상청 관측소가 10분마다 잰 값이에요. 이 관측소엔 돌풍·시정 센서가 없어 그 둘은 30km 옆 공항 값입니다.`
+            : `괴레메에서 30km, 표고 944m 공항의 실제 관측값이에요. 계곡 안 바람과는 다를 수 있지만, 여기 나오는 값 중 유일하게 <b>잰</b> 값입니다.`}</div>
       </div>`;
+  }
+
+  // 터키 기상청 3시간 예보 중 내일 이륙 창(03Z·06Z)의 풍속/최대풍. 현지 업체가 보는 종류의 숫자다.
+  function mgmFcLine(){
+    const fc = STATE.mgm && STATE.mgm.fc && STATE.mgm.fc.latest; if(!fc || !fc.rows) return "";
+    const tm = D.add(TODAY,1);
+    const pick = fc.rows.filter(r => r[0].startsWith(tm) && /T0[36]:00/.test(r[0]));
+    if(!pick.length) return "";
+    const kt = v => v==null ? "—" : Math.round(v*KMH2KT);
+    const parts = pick.map(r => `${(+r[0].slice(11,13)+3)%24}시 바람 ${kt(r[1])}kt · 최대 ${kt(r[2])}kt`);
+    return `<div class="nowfoot">터키 기상청 예보(네브셰히르) 내일 새벽: ${parts.join(" / ")}
+      <span style="opacity:.75">(예보 기준 ${fc.run.slice(5,16).replace("T"," ")}Z)</span></div>`;
   }
 
   // 지금 이 시각 괴레메 (모델 추정). 실측이 있으면 그쪽을 앞세우고 이건 생략한다.
@@ -2125,6 +2171,21 @@ async function loadMetar(){
   return { list, liveOk, fileMeta };
 }
 
+/* 터키 기상청 관측소(괴레메 마을 안) + 기상청 3시간 예보. 서버가 매시간 모아둔다. */
+async function loadMgm(){
+  try{
+    const r = await fetch("data/mgm.json", {cache:"no-store"}); if(!r.ok) throw 0;
+    const j = await r.json();
+    const latest = {};                  // istNo → 최신 행
+    for(const [k, v] of Object.entries(j.rows || {})){
+      const [no, t] = k.split("|");
+      if(!latest[no] || t > latest[no].t) latest[no] = { t, kmh:v[0], dir:v[1], tmpc:v[2], rh:v[3], vis:v[4], rain:v[5] };
+    }
+    return { latest, stations: j.stations || [], fc: j.fc || null, count: j.count, updated: j.updated };
+  }catch(e){ return null; }
+}
+const KMH2KT = 0.539957;
+
 /* 어떤 날의 이륙 창(일출 -45 ~ +120분, 현지) 안 관측을 요약한다 */
 function obsWindow(date){
   const M = STATE.metar; if(!M || !M.list.length) return null;
@@ -2348,7 +2409,13 @@ async function boot(force){
   STATE.now = await buildNow();
 
   // 실측: 민항청 판정 파일 + 공항 METAR (실시간 시도 → 서버 파일)
-  [STATE.shm, STATE.metar] = await Promise.all([loadShm(), loadMetar()]);
+  [STATE.shm, STATE.metar, STATE.mgm] = await Promise.all([loadShm(), loadMetar(), loadMgm()]);
+  {
+    const g = STATE.mgm && STATE.mgm.latest && STATE.mgm.latest["18902"];
+    diag("괴레메 관측소(터키 기상청)", !!g, g
+      ? `${g.t.slice(11,16)}Z · ${Math.round(g.kmh*KMH2KT)}kt · 누적 ${STATE.mgm.count}행`
+      : "아직 수집 전");
+  }
   diag("민항청 공식 판정(SHM)", !!(STATE.shm && STATE.shm.latest),
     STATE.shm && STATE.shm.latest ? `${STATE.shm.latest.date} → ${STATE.shm.latest.verdict==="flew"?"가능":"불가"} · 발표 ${(STATE.shm.latest.updated||"").slice(0,16)}` : "아직 수집 전 (Actions 첫 실행 뒤 생김)");
   diag("공항 실측(METAR)", !!(STATE.metar && STATE.metar.list.length),

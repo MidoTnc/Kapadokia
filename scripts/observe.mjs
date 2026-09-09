@@ -23,6 +23,21 @@ const IOWA = (y1, m1, d1, y2, m2, d2) =>
 const OUT_SHM = new URL("../data/shm.json", import.meta.url);
 const OUT_METAR = new URL("../data/metar.json", import.meta.url);
 const OUT_LOG = new URL("../data/log.json", import.meta.url);
+const OUT_MGM = new URL("../data/mgm.json", import.meta.url);
+
+/* 터키 기상청(MGM) 자동관측소. 민항청 사이트가 판정 근거로 링크한 페이지가 이 API 를 쓴다.
+   18902 는 괴레메 마을 안(38.648, 34.837, 1083m) — 앱 좌표에서 1km 도 안 된다.
+   10분마다 갱신, 풍속은 km/h, 돌풍은 없다. 과거 조회 API 가 없어 지금부터 쌓는 수밖에 없다.
+   브라우저에선 CORS 로 막히고 Origin 헤더를 요구해서 여기서만 읽을 수 있다. */
+const MGM_STATIONS = [
+  { no: 18902, name: "괴레메",   lat: 38.6479, lon: 34.8369, elev: 1083 },
+  { no: 17835, name: "위르귀프", lat: 38.6218, lon: 34.9147, elev: 1068 },
+  { no: 17833, name: "아바노스", lat: 38.7221, lon: 34.8567, elev: 951 },
+  { no: 17194, name: "공항(MGM)", lat: 38.7788, lon: 34.5239, elev: 945 }
+];
+const MGM_OBS = "https://servis.mgm.gov.tr/web/sondurumlar?istno=";
+const MGM_FC  = "https://servis.mgm.gov.tr/web/tahminler/saatlik?istno=17193";   // 네브셰히르 3시간 예보 (최대풍 포함)
+const MGM_HDR = { "user-agent": "Mozilla/5.0", "accept": "application/json", "origin": "https://www.mgm.gov.tr", "referer": "https://www.mgm.gov.tr/" };
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const pad = n => String(n).padStart(2, "0");
@@ -147,6 +162,49 @@ async function fetchMetarArchive(fromISO, toISO) {
   return rows;
 }
 
+async function collectMGM() {
+  let store = { stations: MGM_STATIONS, cols: ["kmh", "dir", "tmpc", "rh", "vis_m", "rain1h"], rows: {}, fc: { runs: [] } };
+  try { const j = JSON.parse(await readFile(OUT_MGM, "utf8")); if (j && j.rows) store = Object.assign(store, j); } catch { }
+  store.rows ||= {}; store.fc ||= { runs: [] };
+
+  let got = 0;
+  for (const st of MGM_STATIONS) {
+    try {
+      const r = await fetch(MGM_OBS + st.no, { headers: MGM_HDR, signal: AbortSignal.timeout(20000) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
+      const d = Array.isArray(j) ? j[0] : j;
+      if (!d || !d.veriZamani) continue;
+      const nn = v => (v == null || v === -9999) ? null : v;
+      const key = `${st.no}|${d.veriZamani.slice(0, 16)}Z`;
+      store.rows[key] = [nn(d.ruzgarHiz), nn(d.ruzgarYon), nn(d.sicaklik), nn(d.nem), nn(d.gorus), nn(d.yagis1Saat)];
+      got++;
+    } catch (e) { console.log(`MGM ${st.name}: 실패 (${e.message})`); }
+  }
+  // 예보: 실행(run)마다 한 벌. 나중에 "기상청 예보 대 실제 판정" 을 대조하는 재료.
+  try {
+    const r = await fetch(MGM_FC, { headers: MGM_HDR, signal: AbortSignal.timeout(20000) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    if (Array.isArray(j) && j[0] && j[0].tahmin) {
+      const run = { run: j[0].baslangicZamani, fetched: new Date().toISOString(),
+        rows: j[0].tahmin.map(t => [t.tarih.slice(0, 16) + "Z", t.ruzgarHizi, t.maksimumRuzgarHizi, t.ruzgarYonu, t.sicaklik, t.hadise]) };
+      if (!store.fc.runs.some(x => x.run === run.run)) store.fc.runs.push(run);
+      store.fc.runs = store.fc.runs.slice(-200);
+      store.fc.latest = run;
+      console.log(`MGM 예보: run ${run.run} · ${run.rows.length}행`);
+    }
+  } catch (e) { console.log("MGM 예보: 실패 (" + e.message + ")"); }
+
+  // 400일 넘은 행 정리
+  const cutoff = addDays(todayUTC(), -METAR_KEEP_DAYS);
+  for (const k of Object.keys(store.rows)) if (k.split("|")[1].slice(0, 10) < cutoff) delete store.rows[k];
+  store.updated = new Date().toISOString();
+  store.count = Object.keys(store.rows).length;
+  await writeFile(OUT_MGM, JSON.stringify(store) + "\n");
+  console.log(`MGM 관측: ${got}/${MGM_STATIONS.length}곳 · 누적 ${store.count}행`);
+}
+
 const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 const todayUTC = () => new Date().toISOString().slice(0, 10);
 
@@ -223,6 +281,9 @@ const main = async () => {
   metar.first = keys[0] || null; metar.last = keys[keys.length - 1] || null;
   await writeFile(OUT_METAR, JSON.stringify(metar) + "\n");
   console.log(`METAR 누적 ${keys.length}행 (${before} → ${keys.length}) · ${metar.first} ~ ${metar.last}`);
+
+  // ── MGM (괴레메 관측소 + 기상청 예보) ──
+  try { await collectMGM(); } catch (e) { console.log("MGM: 실패 (" + e.message + ")"); }
 
   // ── SHM 판정을 로그에 반영 ──
   // 전날 미리 올라온 판정은 '예비'다. 해당 날짜 당일(또는 그 뒤)에 갱신된 것만 확정으로 본다.
