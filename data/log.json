@@ -407,18 +407,24 @@
    "src": "shm",
    "agree": true,
    "note": "SHM A/B/C 가능 0·불가 3 (2026-09-12T06:45)"
+  },
+  "2026-09-13": {
+   "s": "cancelled",
+   "src": "shm",
+   "agree": true,
+   "note": "SHM A/B/C 가능 0·불가 3 (2026-09-13T06:45)"
   }
  },
  "lastScrape": {
-  "at": "2026-09-12T15:59:38.186Z",
+  "at": "2026-09-13T07:59:32.201Z",
   "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-09-12T15:59:39.020Z",
+ "updated": "2026-09-13T07:59:33.360Z",
  "counts": {
-  "total": 68,
-  "measured": 22,
+  "total": 69,
+  "measured": 23,
   "flew": 52
  }
 }
