@@ -509,18 +509,24 @@
    "src": "scrape",
    "agree": true,
    "note": "balloonstatus:cancelled, balloonstatus2:cancelled, epicturkey:cancelled"
+  },
+  "2026-09-30": {
+   "s": "cancelled",
+   "src": "shm",
+   "agree": true,
+   "note": "SHM A/B/C 가능 0·불가 3 (2026-09-30T06:21)"
   }
  },
  "lastScrape": {
-  "at": "2026-09-29T18:27:14.155Z",
+  "at": "2026-09-30T09:18:08.468Z",
   "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-09-29T18:27:15.286Z",
+ "updated": "2026-09-30T09:18:10.878Z",
  "counts": {
-  "total": 85,
-  "measured": 39,
+  "total": 86,
+  "measured": 40,
   "flew": 53
  }
 }
