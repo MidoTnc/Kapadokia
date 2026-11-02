@@ -707,18 +707,24 @@
    "src": "shm",
    "agree": true,
    "note": "SHM A/B/C 가능 0·불가 3 (2026-11-01T07:14)"
+  },
+  "2026-11-02": {
+   "s": "cancelled",
+   "src": "shm",
+   "agree": true,
+   "note": "SHM A/B/C 가능 0·불가 3 (2026-11-02T07:15)"
   }
  },
  "lastScrape": {
-  "at": "2026-11-01T18:15:37.493Z",
+  "at": "2026-11-02T10:31:02.154Z",
   "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-11-01T18:15:38.567Z",
+ "updated": "2026-11-02T10:31:03.565Z",
  "counts": {
-  "total": 118,
-  "measured": 72,
+  "total": 119,
+  "measured": 73,
   "flew": 55
  }
 }
