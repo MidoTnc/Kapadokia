@@ -764,12 +764,12 @@
   }
  },
  "lastScrape": {
-  "at": "2026-11-10T10:45:45.871Z",
+  "at": "2026-11-10T20:12:17.263Z",
   "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-11-10T10:45:49.268Z",
+ "updated": "2026-11-10T20:12:20.506Z",
  "counts": {
   "total": 127,
   "measured": 81,
