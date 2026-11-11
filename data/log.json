@@ -761,18 +761,24 @@
    "src": "shm",
    "agree": true,
    "note": "SHM A/B/C 가능 0·불가 3 (2026-11-10T07:16)"
+  },
+  "2026-11-11": {
+   "s": "flew",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus:flew, balloonstatus2:flew, epicturkey:flew"
   }
  },
  "lastScrape": {
-  "at": "2026-11-10T20:12:17.263Z",
+  "at": "2026-11-11T10:17:35.008Z",
   "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-11-10T20:12:20.506Z",
+ "updated": "2026-11-11T10:17:35.831Z",
  "counts": {
-  "total": 127,
-  "measured": 81,
-  "flew": 56
+  "total": 128,
+  "measured": 82,
+  "flew": 57
  }
 }
