@@ -785,18 +785,24 @@
    "src": "scrape",
    "agree": true,
    "note": "balloonstatus:cancelled, balloonstatus2:cancelled, epicturkey:cancelled"
+  },
+  "2026-11-15": {
+   "s": "cancelled",
+   "src": "scrape",
+   "agree": true,
+   "note": "balloonstatus:cancelled, balloonstatus2:cancelled, epicturkey:cancelled"
   }
  },
  "lastScrape": {
-  "at": "2026-11-14T18:38:23.377Z",
+  "at": "2026-11-15T10:22:53.460Z",
   "sitesRead": 3,
   "sitesTried": 3
  },
  "pending": [],
- "updated": "2026-11-14T18:38:23.766Z",
+ "updated": "2026-11-15T10:22:53.775Z",
  "counts": {
-  "total": 131,
-  "measured": 85,
+  "total": 132,
+  "measured": 86,
   "flew": 57
  }
 }
